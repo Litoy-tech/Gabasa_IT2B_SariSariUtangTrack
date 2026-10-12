@@ -1,4 +1,4 @@
-package com.scc.ui;
+package com.scc.ui.SystemAuditor;
 
 import com.scc.model.User;
 

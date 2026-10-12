@@ -22,7 +22,7 @@ public class UserDao {
             pstmt.setString(3, password);
             pstmt.setString(4, role.toUpperCase());
             pstmt.executeUpdate();
-            System.out.println("-> Successful Registration, Waiting for Approval");
+            System.out.println("\n-> Successful Registration, Waiting for Approval");
             return true;
 
         } catch (SQLException e) {
