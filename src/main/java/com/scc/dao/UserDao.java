@@ -56,6 +56,11 @@ public class UserDao {
             ps.setString(2, password);
             try(ResultSet rs = ps.executeQuery()){
                 if(rs.next()){
+                    String status = rs.getString("status");
+                    if("PENDING".equalsIgnoreCase(status)){
+                        System.out.println(" -> Account is pending, Waiting for Approval");
+                        return null;
+                    }
                     return new User(
                             rs.getInt("user_id"),
                             rs.getString("fullName"),
@@ -65,6 +70,8 @@ public class UserDao {
                             rs.getString("status"),
                             rs.getString("created_at")
                     );
+                }else{
+                    System.out.println(" -> Invalid username or password");
                 }
             }
         } catch (SQLException e) {

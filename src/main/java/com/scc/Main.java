@@ -69,14 +69,7 @@ public class Main {
 
         User loggedIn = userDao.login(user, pass);
 
-        if(loggedIn == null){
-            System.out.println("\nInvalid username or password! Try again.");
-        }else if(!loggedIn.status().equals("APPROVED")){
-            System.out.println("\nYour account is still PENDING approval.");
-            return;
-        }else{
-
-            System.out.println("\nSuccessfully Login");
+        if(loggedIn != null){
             switch (loggedIn.roles()){
                 case "OWNER":
                     new OwnerMenu(sc).show(loggedIn);
