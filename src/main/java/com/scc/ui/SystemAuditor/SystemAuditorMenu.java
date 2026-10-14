@@ -16,9 +16,11 @@ public class SystemAuditorMenu implements Menu {
     }
 
     @Override
-    public void show(User u) {
-        System.out.println("\n=== SYSTEM AUDITOR MENU ===");
-        System.out.println("Welcome, " + u.fullName() + "!");
+    public void show(User SysAuditor) {
+        System.out.println("\n===============================");
+        System.out.println("     SYSTEM AUDITOR MENU");
+        System.out.println("===============================");
+        System.out.println("Welcome, " + SysAuditor.fullName() + "!");
 
         while (true) {
             System.out.println("\n[1] Logout");

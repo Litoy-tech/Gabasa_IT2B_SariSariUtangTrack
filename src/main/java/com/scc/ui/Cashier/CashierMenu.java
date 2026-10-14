@@ -17,11 +17,12 @@ public class CashierMenu implements Menu {
     }
 
     @Override
-    public void show(User u) {
+    public void show(User cashier) {
         while (true) {
-            System.out.println("\n===== CASHIER MENU =====");
-            System.out.println("   Welcome, " + u.fullName() + "!");
-            System.out.println("========================");
+            System.out.println("\n===============================");
+            System.out.println("          CASHIER MENU");
+            System.out.println("   Welcome, " + cashier.fullName() + "!");
+            System.out.println("===============================");
             System.out.println("[1] Process Sale\n[2] Record Utang Payment\n[3] Search Customer\n[4] View Product List\n[5] Logout");
 
             int choice = InputHelper.readInt(sc, "Enter Choice: ");

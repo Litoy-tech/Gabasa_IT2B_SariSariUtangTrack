@@ -18,8 +18,8 @@ public class Main {
         while(true){
 
             System.out.println("\n========================================");
-            System.out.println("              SARI SARI STORE");
-            System.out.println("\n========================================");
+            System.out.println("             SARI SARI STORE");
+            System.out.println("========================================");
             System.out.println("[1] Login");
             System.out.println("[2] Register");
             System.out.println("[3] Exit");
@@ -73,7 +73,7 @@ public class Main {
         if(loggedIn != null){
             Menu menu;
             switch (loggedIn.roles()){
-                case "OWNER":
+                case "ADMIN":
                     menu = new OwnerMenu( userDao,sc);
                     break;
                 case "CASHIER":

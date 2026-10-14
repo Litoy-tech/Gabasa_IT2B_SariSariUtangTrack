@@ -18,12 +18,13 @@ public class OwnerMenu implements Menu {
     }
 
     @Override
-    public void show(User u){
+    public void show(User admin){
 
         while(true){
-            System.out.println("\n===== OWNER MENU =====");
-            System.out.println("Welcome, " + u.fullName() + "!");
-            System.out.println("======================");
+            System.out.println("\n===============================");
+            System.out.println("            OWNER MENU ");
+            System.out.println("Welcome, " + admin.fullName() + "!");
+            System.out.println("===============================");
             System.out.println("[1] Manage Product\n[2] Manage Customers\n[3] Manage Users\n[4] View Sales" +
                     "\n[5] Reports\n[6] Logout");
             int choice = InputHelper.readInt(sc, "Enter Choice: ");
