@@ -3,6 +3,7 @@ package com.scc;
 import com.scc.dao.UserDao;
 import com.scc.model.User;
 import com.scc.ui.Cashier.CashierMenu;
+import com.scc.ui.Menu;
 import com.scc.ui.Owner.OwnerMenu;
 import com.scc.ui.SystemAuditor.SystemAuditorMenu;
 
@@ -70,21 +71,23 @@ public class Main {
         User loggedIn = userDao.login(user, pass);
 
         if(loggedIn != null){
+            Menu menu;
             switch (loggedIn.roles()){
                 case "OWNER":
-                    new OwnerMenu(sc).show(loggedIn);
+                    menu = new OwnerMenu( userDao,sc);
                     break;
                 case "CASHIER":
-                    new CashierMenu(sc).show(loggedIn);
+                    menu = new CashierMenu(userDao,sc);
                     break;
                 case "SYS_AUDITOR":
-                    new SystemAuditorMenu(sc).show(loggedIn);
+                    menu = new SystemAuditorMenu(userDao,sc);
                     break;
                 default:
                     System.out.println("Unknown Role!");
+                    return;
             }
+            menu.show(loggedIn);
         }
-        return;
     }
 
     public static void registerUser(){

@@ -1,5 +1,6 @@
 package com.scc.ui.Cashier;
 
+import com.scc.dao.UserDao;
 import com.scc.model.User;
 import com.scc.ui.InputHelper;
 import com.scc.ui.Menu;
@@ -7,9 +8,11 @@ import com.scc.ui.Menu;
 import java.util.Scanner;
 
 public class CashierMenu implements Menu {
+    private final UserDao userDao;
     private final Scanner sc;
 
-    public CashierMenu(Scanner sc) {
+    public CashierMenu(UserDao userDao, Scanner sc) {
+        this.userDao = userDao;
         this.sc = sc;
     }
 
