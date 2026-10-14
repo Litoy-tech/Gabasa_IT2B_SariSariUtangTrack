@@ -139,7 +139,7 @@ public class Main {
                     confirmed = true;
                     break;
                 }
-                System.out.println("Passwords do not match! Attempt " + attempt + " of 3.");
+                System.out.println("\nPasswords do not match! Attempt " + attempt + " of 3.");
             }
 
             if (confirmed) {
