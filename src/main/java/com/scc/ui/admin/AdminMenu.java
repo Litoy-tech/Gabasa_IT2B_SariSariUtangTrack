@@ -30,16 +30,14 @@ public class AdminMenu implements Menu {
             int choice = InputHelper.readInt(sc, "Enter Choice: ");
 
             switch(choice){
-                case 1: System.out.println("Manage Products (soon)"); break;
-                case 2: System.out.println("Manage Customers (soon)"); break;
-                case 3: System.out.println("Manage Users (soon)"); break;
-                case 4: System.out.println("View Sales (soon)"); break;
-                case 5: System.out.println("Reports (soon)"); break;
-                case 6:
+                case 1 -> System.out.println("Manage Products (soon)");
+                case 2 -> System.out.println("Manage Customers (soon)");
+                case 3 -> new UserManagementMenu(userdao, sc).show();
+                case 4 -> System.out.println("View Sales (soon)");
+                case 5 -> System.out.println("Reports (soon)");
+                case 6 ->
                     System.out.println("Logging out...");
-                    return;
-                default:
-                    System.out.println("Invalid choice! Pili ra gikan sa 1 hangtod 6.");
+                default -> System.out.println("Invalid choice! Pili ra gikan sa 1 hangtod 6.");
             }
         }
     }
