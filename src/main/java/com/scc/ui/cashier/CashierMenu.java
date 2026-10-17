@@ -1,4 +1,4 @@
-package com.scc.ui.Cashier;
+package com.scc.ui.cashier;
 
 import com.scc.dao.UserDao;
 import com.scc.model.User;

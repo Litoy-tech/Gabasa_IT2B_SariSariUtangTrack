@@ -1,4 +1,4 @@
-package com.scc.ui.Owner;
+package com.scc.ui.admin;
 
 import com.scc.dao.UserDao;
 import com.scc.model.User;
@@ -7,12 +7,12 @@ import com.scc.ui.Menu;
 
 import java.util.Scanner;
 
-public class OwnerMenu implements Menu {
+public class AdminMenu implements Menu {
     private final UserDao userdao;
     private final Scanner sc;
 
 
-    public OwnerMenu(UserDao userdao,Scanner sc){
+    public AdminMenu(UserDao userdao, Scanner sc){
         this.userdao = userdao;
         this.sc = sc;
     }

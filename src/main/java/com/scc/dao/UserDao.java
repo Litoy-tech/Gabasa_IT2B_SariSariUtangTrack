@@ -3,6 +3,8 @@ package com.scc.dao;
 import com.scc.model.User;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class UserDao {
@@ -29,7 +31,7 @@ public class UserDao {
                 System.out.println("-> Default Admin created");
             }
         } catch (SQLException e) {
-            System.err.println("Error seeding defualt admin: " + e.getMessage());
+            System.err.println("Error seeding default admin: " + e.getMessage());
         }
 
     }
@@ -103,5 +105,32 @@ public class UserDao {
             System.out.println("Database error: " + e.getMessage());
         }
         return null;
+    }
+
+    public List<User> getAllUser(){
+        List<User> usersList = new ArrayList<>();
+        String sql = "SELECT * FROM users";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)){
+
+            while(rs.next()){
+                usersList.add(new User(
+                        rs.getInt("user_id"),
+                        rs.getString("fullName"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("roles"),
+                        rs.getString("status"),
+                        rs.getString("created_at")
+                ));
+            }
+
+        }catch (SQLException e){
+            System.err.println("Error Fetching all users: "+ e.getMessage());
+
+        }
+        return usersList;
     }
 }
