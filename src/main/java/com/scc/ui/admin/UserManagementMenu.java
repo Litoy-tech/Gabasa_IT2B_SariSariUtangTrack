@@ -42,7 +42,7 @@ public class UserManagementMenu {
     private void displayUserTable(List<User> users, String title){
         System.out.println("\n================================= " +title+ " =================================");
         if(users.isEmpty()){
-            System.out.println("\n -> No Records");
+            System.out.println("\n-> No Records");
             return;
         }
 
@@ -55,8 +55,6 @@ public class UserManagementMenu {
 
 
     }
-
-
 
     private void viewAllUser(){
         displayUserTable(userDao.getAllUser(), "ALL REGISTERED USER");
