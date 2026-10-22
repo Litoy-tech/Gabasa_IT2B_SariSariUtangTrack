@@ -37,7 +37,7 @@ public class UserManagementMenu {
                 case "5" -> System.out.println("Padulong pa");
                 case "6" -> System.out.println("Padulong pacl");
                 case "0" -> {return;}
-                default -> System.out.println("Invalid choice! 1 to 6 only.");
+                default -> System.out.println("Invalid choice! 0 to 6 only.");
             }
         }
     }
