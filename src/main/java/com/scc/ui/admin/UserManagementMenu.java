@@ -35,7 +35,8 @@ public class UserManagementMenu {
                 case "3" -> viewPendingUser();
                 case "4" -> approvedUser();
                 case "5" -> System.out.println("Padulong pa");
-                case "6" -> {return;}
+                case "6" -> System.out.println("Padulong pacl");
+                case "0" -> {return;}
                 default -> System.out.println("Invalid choice! 1 to 5 only.");
             }
         }
