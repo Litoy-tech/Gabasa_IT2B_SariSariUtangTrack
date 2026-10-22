@@ -72,7 +72,7 @@ public class InputHelper {
             String input = sc.nextLine().trim().toLowerCase();
             if(input.equals("y") || input.equals("yes")) return true;
             if(input.equals("n") || input.equals("no")) return false;
-            System.out.println("Y o N lang.");
+            System.out.println("Please Enter Y or N.");
         }
     }
 }
