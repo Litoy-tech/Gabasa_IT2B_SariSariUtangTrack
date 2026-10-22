@@ -25,8 +25,8 @@ public class UserManagementMenu {
             System.out.println("\n===============================");
             System.out.println("         MANAGE USERS");
             System.out.println("===============================");
-            System.out.println("[1] Add User\n[2] View All Users\n[3] View Pending User\n[4] Approved User" +
-                    "\n[4] Deactivate User\n[5] Back");
+            System.out.println("[1] Add User\n[2] View All Users\n[3] View Pending User\n[5] Approved User" +
+                    "\n[6] Deactivate User\n[0] Back");
             String choice = InputHelper.readString(sc, "Enter Choice: ");
 
             switch (choice) {
