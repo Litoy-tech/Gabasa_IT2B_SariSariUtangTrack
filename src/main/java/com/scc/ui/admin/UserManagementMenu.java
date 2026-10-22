@@ -45,7 +45,7 @@ public class UserManagementMenu {
         System.out.println("\n====================================== " +title+ " ======================================");
 
         if(users.isEmpty()){
-            System.out.println("\n-> No Records");
+            System.out.println("\n-> No Records.");
             return;
         }
 
