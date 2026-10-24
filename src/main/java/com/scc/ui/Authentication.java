@@ -54,7 +54,7 @@ public class Authentication {
             user = sc.nextLine().trim();
 
             if(user.isEmpty()){
-                System.out.println("Invalid! Fullname cannot be empty.");
+                System.out.println("Invalid! username cannot be empty.");
             }else {
                 break;
             }
@@ -66,7 +66,7 @@ public class Authentication {
             pass = sc.nextLine().trim();
 
             if(pass.isEmpty()){
-                System.out.println("Invalid! Fullname cannot be empty.");
+                System.out.println("Invalid! password cannot be empty.");
             }else{
                 break;
             }
