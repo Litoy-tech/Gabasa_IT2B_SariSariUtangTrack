@@ -115,8 +115,10 @@ public class Authentication {
             System.out.print("Enter username: ");
             user = sc.nextLine().trim().toLowerCase();
 
-            if (!user.endsWith("@gmail.com") || user.length() <= "@gmail.com".length() || user.contains(" ")) {
-                System.out.println("Invalid! Enter a valid Gmail without spaces (example: lito@gmail.com).");
+            if (user.length() < 5) {
+                System.out.println("Invalid! Username must be at least 5 characters.");
+            }else if (!user.matches("^[a-z0-9_]+$")) {
+                System.out.println("Invalid! Use letters, numbers, and underscore only (no spaces).");
             } else if (userDao.usernameExists(user)) {
                 System.out.println("Invalid! Username already taken.");
             } else {

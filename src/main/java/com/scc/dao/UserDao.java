@@ -181,4 +181,52 @@ public class UserDao {
         }
         return false;
     }
+
+    public boolean deletedUser(int userId){
+        String sql = "DELETE FROM users WHERE user_id = ?";
+
+        try(Connection  conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setInt(1, userId);
+            int rowsDelete = pstmt.executeUpdate();
+
+            if(rowsDelete > 0){
+                System.out.println("\n -> User ID: "+userId+" has been deleted");
+                return true;
+            }else {
+                System.out.println(" -> User ID not found!");
+            }
+
+        }catch (SQLException e){
+            System.err.println("Error fetching users" + e.getMessage());
+        }
+        return false;
+
+    }
+
+    public boolean addUser(String fullname, String username, String password, String roles){
+        String sql = "INSERT INTO users(fullName, username, password, roles, status) VALUES(?, ?, ?, ?, 'PENDING')";
+
+        if(usernameExists(username)){
+            System.out.println("Username already exists!");
+            return false;
+        }
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setString(1, fullname);
+            pstmt.setString(2, username);
+            pstmt.setString(3, password);
+            pstmt.setString(4, roles);
+            pstmt.executeUpdate();
+            System.out.println("\n-> Successful Registration, Waiting for Approval");
+            return true;
+
+        } catch (SQLException e) {
+            System.err.println("Error adding users" + e.getMessage());
+            return false;
+        }
+    }
+
 }
