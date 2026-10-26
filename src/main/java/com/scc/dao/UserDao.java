@@ -175,7 +175,6 @@ public class UserDao {
                 System.out.println("\n -> User ID not found!");
             }
 
-
         } catch (SQLException e) {
             System.err.println("Error fetching users" + e.getMessage());
         }
@@ -227,6 +226,31 @@ public class UserDao {
             System.err.println("Error adding users" + e.getMessage());
             return false;
         }
+    }
+
+    public boolean updateUserAndStatus(int userId, String newRole, String newStatus){
+           String sql = "UPDATE users SET roles = ?, status = ?";
+
+           try(Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+               pstmt.setString(1, newRole.toUpperCase());
+               pstmt.setString(2, newStatus);
+               pstmt.setInt(3, userId);
+
+               int rowUpdate = pstmt.executeUpdate();
+
+               if(rowUpdate > 0){
+                   System.out.println(" -> User ID: "+userId+" Updated Successfully.");
+                   return true;
+               }else{
+                   System.out.println(" -> User ID not found.");
+               }
+               return false;
+           }catch (SQLException e){
+               System.err.println("Error updating user: " + e.getMessage());
+           }
+        return false;
     }
 
 }
