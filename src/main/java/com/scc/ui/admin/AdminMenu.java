@@ -20,6 +20,7 @@ public class AdminMenu implements Menu {
     @Override
     public void show(User admin){
 
+
         while(true){
             System.out.println("\n===============================");
             System.out.println("            OWNER MENU ");
@@ -35,8 +36,9 @@ public class AdminMenu implements Menu {
                 case 3 -> new UserManagementMenu(userdao, sc).show();
                 case 4 -> System.out.println("View Sales (soon)");
                 case 5 -> System.out.println("Reports (soon)");
-                case 6 ->
-                    System.out.println("Logging out...");
+                case 6 ->{
+                    System.out.println("Logging out..."); return;
+                }
                 default -> System.out.println("Invalid choice! Pili ra gikan sa 1 hangtod 6.");
             }
         }
