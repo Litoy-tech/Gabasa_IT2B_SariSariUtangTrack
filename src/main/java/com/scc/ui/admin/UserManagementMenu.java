@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static com.scc.ui.InputHelper.readInt;
-import static com.scc.ui.InputHelper.readYesNo;
+import static com.scc.ui.InputHelper.*;
 
 public class UserManagementMenu {
     private final UserDao userDao;
@@ -99,6 +98,48 @@ public class UserManagementMenu {
         }
     }
 
+    private void UpdateUser(User currentAdmin){
+        List<User> users = userDao.getAllUser();
+        displayUserTable(users, " UPDATING USER ");
+
+        if(users.isEmpty()){
+            return;
+        }
+
+        int userId = readInt(sc, "Enter ID to update user (0 to cancel): ");
+
+        if(userId == 0){
+            System.out.println(" -> Operation Cancelled by the user.");
+            return;
+        }
+
+        if(userId == currentAdmin.user_id()){
+            System.out.println(" -> [WARNING] Modifying current active Admin is restricted.");
+        }
+
+        System.out.println(" [1] ADMIN\n [2] CASHIER\n [3] SYSTEM_AUDITOR");
+        String newRole = readString(sc, "Enter New Role (0 to cancel): ");
+
+        switch (newRole){
+            case "1":
+                newRole = "ADMIN";
+                break;
+            case "2":
+                newRole = "CASHIER";
+                break;
+            case "3":
+                newRole = "SYSTEM AUDITOR";
+                break;
+            case "0":
+                return;
+            default:
+                System.out.println("Please Enter 0 - 3 only.");
+        }
+
+        int newStatus = readInt(sc, "Enter New Status (0 to cancel): ");
+
+    }
+
     private void deleteUser(){
         List<User> deletingUsers = userDao.getAllUser();
         displayUserTable(userDao.getAllUser(), "ALL REGISTERED USER");
@@ -127,5 +168,7 @@ public class UserManagementMenu {
             System.out.println(" -> Cancelled.");
         }
     }
+
+
 
 }

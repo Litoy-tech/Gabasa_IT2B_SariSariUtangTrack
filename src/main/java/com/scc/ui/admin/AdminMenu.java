@@ -37,7 +37,7 @@ public class AdminMenu implements Menu {
                 case 4 -> System.out.println("View Sales (soon)");
                 case 5 -> System.out.println("Reports (soon)");
                 case 6 ->{
-                    System.out.println("Logging out..."); return;
+                    System.out.println("\nLogging out..."); return;
                 }
                 default -> System.out.println("Invalid choice! Pili ra gikan sa 1 hangtod 6.");
             }
