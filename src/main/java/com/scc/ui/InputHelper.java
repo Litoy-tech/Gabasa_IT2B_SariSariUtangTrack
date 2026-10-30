@@ -4,7 +4,6 @@ import java.util.Scanner;
 
 public class InputHelper {
 
-    // Integer (menu choice, ID, quantity)
     public static int readInt(Scanner sc, String prompt){
         while(true){
             System.out.print(prompt);
@@ -12,12 +11,11 @@ public class InputHelper {
             try {
                 return Integer.parseInt(input);
             } catch(NumberFormatException e){
-                System.out.println("Invalid input! Numbers only, palihug.");
+                System.out.println(" -> [ERROR] Invalid input. Numbers only.");
             }
         }
     }
 
-    // Double (price)
     public static double readDouble(Scanner sc, String prompt){
         while(true){
             System.out.print(prompt);
@@ -30,7 +28,6 @@ public class InputHelper {
         }
     }
 
-    // String nga dili pwede blangko (name, username)
     public static String readString(Scanner sc, String prompt){
         while(true){
             System.out.print(prompt);
@@ -38,11 +35,10 @@ public class InputHelper {
             if(!input.isEmpty()){
                 return input;
             }
-            System.out.println("Dili pwede nga blangko.");
+            System.out.println(" -> [ERROR] Input cannot be empty.");
         }
     }
 
-    // 4-digit PIN
     public static String readPin(Scanner sc, String prompt){
         while(true){
             System.out.print(prompt);
@@ -54,7 +50,6 @@ public class InputHelper {
         }
     }
 
-    // Integer nga naay minimum ug maximum (menu choice, quantity)
     public static int readIntRange(Scanner sc, String prompt, int min, int max){
         while(true){
             int value = readInt(sc, prompt);
@@ -65,7 +60,6 @@ public class InputHelper {
         }
     }
 
-    // Yes/No (pananglitan agreement on file, confirm delete)
     public static boolean readYesNo(Scanner sc, String prompt){
         while(true){
             System.out.print(prompt + " (Y/N): ");

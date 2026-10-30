@@ -11,7 +11,6 @@ public class AdminMenu implements Menu {
     private final UserDao userdao;
     private final Scanner sc;
 
-
     public AdminMenu(UserDao userdao, Scanner sc){
         this.userdao = userdao;
         this.sc = sc;
@@ -19,8 +18,6 @@ public class AdminMenu implements Menu {
 
     @Override
     public void show(User admin){
-
-
         while(true){
             System.out.println("\n===============================");
             System.out.println("            OWNER MENU ");
@@ -33,7 +30,7 @@ public class AdminMenu implements Menu {
             switch(choice){
                 case 1 -> System.out.println("Manage Products (soon)");
                 case 2 -> System.out.println("Manage Customers (soon)");
-                case 3 -> new UserManagementMenu(userdao, sc).show();
+                case 3 -> new UserManagementMenu(userdao, sc).show(admin);
                 case 4 -> System.out.println("View Sales (soon)");
                 case 5 -> System.out.println("Reports (soon)");
                 case 6 ->{

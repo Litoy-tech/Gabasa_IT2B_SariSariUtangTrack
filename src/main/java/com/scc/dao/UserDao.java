@@ -20,6 +20,18 @@ public class UserDao {
 
     }
 
+    private User mapUser(ResultSet rs) throws SQLException{
+        return new User(
+                rs.getInt("user_id"),
+                rs.getString("fullName"),
+                rs.getString("username"),
+                rs.getString("password"),
+                rs.getString("roles"),
+                rs.getString("status"),
+                rs.getString("created_at")
+        );
+    }
+
     public void defaultAdminGenerator(Connection conn) {
         String checkSql = "SELECT COUNT(*) FROM users WHERE roles ='ADMIN'";
         String insertSql = "INSERT INTO users(fullName, username, password, roles, status) VALUES('Admin', 'admin@gmail.com', 'admin123', 'ADMIN', 'APPROVED')";
@@ -88,15 +100,11 @@ public class UserDao {
                         System.out.println(" -> Account is pending, Waiting for Approval");
                         return null;
                     }
-                    return new User(
-                            rs.getInt("user_id"),
-                            rs.getString("fullName"),
-                            rs.getString("username"),
-                            rs.getString("password"),
-                            rs.getString("roles"),
-                            rs.getString("status"),
-                            rs.getString("created_at")
-                    );
+                    if("INACTIVE".equalsIgnoreCase(status)){
+                        System.out.println(" -> Account is deactivated. Contact the admin.");
+                        return null;
+                    }
+                    return mapUser(rs);
                 }else{
                     System.out.println(" -> Invalid username or password");
                 }
@@ -116,20 +124,10 @@ public class UserDao {
             ResultSet rs = stmt.executeQuery(sql)){
 
             while(rs.next()){
-                usersList.add(new User(
-                        rs.getInt("user_id"),
-                        rs.getString("fullName"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("roles"),
-                        rs.getString("status"),
-                        rs.getString("created_at")
-                ));
+                usersList.add(mapUser(rs));
             }
-
         }catch (SQLException e){
             System.err.println("Error Fetching all users: "+ e.getMessage());
-
         }
         return usersList;
     }
@@ -141,19 +139,9 @@ public class UserDao {
         try(Connection conn = DatabaseConnection.getConnection()){
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
-
             while(rs.next()){
-                pendingList.add(new User(
-                        rs.getInt("user_id"),
-                        rs.getString("fullName"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("roles"),
-                        rs.getString("status"),
-                        rs.getString("created_at")
-                ));
+                pendingList.add(mapUser(rs));
             }
-
         }catch (SQLException e){
             System.err.println("Error fetching users" + e.getMessage());
         }
@@ -185,22 +173,22 @@ public class UserDao {
         String sql = "DELETE FROM users WHERE user_id = ?";
 
         try(Connection  conn = DatabaseConnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)){
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             int rowsDelete = pstmt.executeUpdate();
 
-            if(rowsDelete > 0){
-                System.out.println("\n -> User ID: "+userId+" has been deleted");
+            if (rowsDelete > 0) {
+                System.out.println("\n -> User ID: " + userId + " has been deleted");
                 return true;
-            }else {
+            } else {
                 System.out.println(" -> User ID not found!");
             }
-
+        }catch (SQLIntegrityConstraintViolationException e){
+            System.out.println(" -> [ERROR] Cannot delete: this user has existing records. Set the status to INACTIVE instead.");
         }catch (SQLException e){
             System.err.println("Error fetching users" + e.getMessage());
         }
         return false;
-
     }
 
     public boolean addUser(String fullname, String username, String password, String roles){
@@ -228,23 +216,23 @@ public class UserDao {
         }
     }
 
-    public boolean updateUserAndStatus(int userId, String newRole, String newStatus){
-           String sql = "UPDATE users SET roles = ?, status = ?";
+    public boolean updateUserRoleAndStatus(int userId, String newRole, String newStatus){
+           String sql = "UPDATE users SET roles = ?, status = ? WHERE user_id = ?";
 
            try(Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)){
 
                pstmt.setString(1, newRole.toUpperCase());
-               pstmt.setString(2, newStatus);
+               pstmt.setString(2, newStatus.toUpperCase());
                pstmt.setInt(3, userId);
 
                int rowUpdate = pstmt.executeUpdate();
 
                if(rowUpdate > 0){
-                   System.out.println(" -> User ID: "+userId+" Updated Successfully.");
+                   System.out.println("\n -> User ID: "+userId+" Updated Successfully.");
                    return true;
                }else{
-                   System.out.println(" -> User ID not found.");
+                   System.out.println("\n -> User ID not found.");
                }
                return false;
            }catch (SQLException e){
