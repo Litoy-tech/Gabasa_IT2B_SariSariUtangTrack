@@ -5,17 +5,16 @@ import com.scc.model.User;
 import com.scc.ui.InputHelper;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import static com.scc.ui.InputHelper.*;
 
-public class UserManagementMenu {
+public class UserManagement {
     private final UserDao userDao;
     private final Scanner sc;
 
-    public UserManagementMenu(UserDao userDao, Scanner sc){
+    public UserManagement(UserDao userDao, Scanner sc){
         this.userDao = userDao;
         this.sc = sc;
     }
