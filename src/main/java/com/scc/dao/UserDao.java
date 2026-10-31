@@ -191,8 +191,8 @@ public class UserDao {
         return false;
     }
 
-    public boolean addUser(String fullname, String username, String password, String roles){
-        String sql = "INSERT INTO users(fullName, username, password, roles, status) VALUES(?, ?, ?, ?, 'PENDING')";
+    public boolean addUser(String fullname, String username, String password, String roles, String status){
+        String sql = "INSERT INTO users(fullName, username, password, roles, status) VALUES(?, ?, ?, ?, ?)";
 
         if(usernameExists(username)){
             System.out.println("Username already exists!");
@@ -206,8 +206,9 @@ public class UserDao {
             pstmt.setString(2, username);
             pstmt.setString(3, password);
             pstmt.setString(4, roles);
+            pstmt.setString(5, status);
             pstmt.executeUpdate();
-            System.out.println("\n-> Successful Registration, Waiting for Approval");
+            System.out.println("\n-> User Successfully Added.");
             return true;
 
         } catch (SQLException e) {

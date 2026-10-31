@@ -29,7 +29,7 @@ public class UserManagement {
             String choice = InputHelper.readString(sc, "Enter Choice: ");
 
             switch (choice) {
-                case "1" -> System.out.println("Add User (soon)");
+                case "1" -> registerUser();
                 case "2" -> viewUsers();
                 case "3" -> approvedUser();
                 case "4" -> updateUserRole(admin);
@@ -65,6 +65,110 @@ public class UserManagement {
         return all.stream()
                 .filter(u -> u.status().equalsIgnoreCase(status))
                 .toList();
+    }
+
+
+    private void registerUser() {
+
+        System.out.println("\n    ===== REGISTER USER =====");
+
+        String full_name;
+        while (true) {
+            System.out.print("Enter your Fullname: ");
+            full_name = sc.nextLine().trim();
+
+            if (full_name.isEmpty()) {
+                System.out.println("Invalid! Fullname cannot be empty.");
+            } else {
+                break;
+            }
+        }
+
+        String user;
+        while (true) {
+            System.out.print("Enter username: ");
+            user = sc.nextLine().trim().toLowerCase();
+
+            if (user.length() < 5) {
+                System.out.println("Invalid! Username must be at least 5 characters.");
+            } else if (!user.matches("^[a-z0-9_]+$")) {
+                System.out.println("Invalid! Use letters, numbers, and underscore only (no spaces).");
+            } else if (userDao.usernameExists(user)) {
+                System.out.println("Invalid! Username already taken.");
+            } else {
+                break;
+            }
+        }
+
+        String pass;
+        while (true) {
+            System.out.print("Enter Password: ");
+            pass = sc.nextLine().trim();
+
+            if (pass.length() < 5) {
+                System.out.println("Invalid! Password must be at least 5 characters.");
+                continue;
+            }
+
+            boolean confirmed = false;
+            for (int attempt = 1; attempt <= 3; attempt++) {
+                System.out.print("Confirm Password: ");
+                String confirm = sc.nextLine().trim();
+
+                if (confirm.equals(pass)) {
+                    confirmed = true;
+                    break;
+                }
+                System.out.println("\nPasswords do not match! Attempt " + attempt + " of 3.");
+            }
+
+            if (confirmed) {
+                break;
+            }
+            System.out.println("Too many wrong attempts. Register Again.");
+            return;
+        }
+
+        String role;
+        while (true) {
+            System.out.println("\n-- SELECT ROLE --");
+            System.out.println(" [1] OWNER (admin)");
+            System.out.println(" [2] CASHIER");
+            System.out.println(" [3] SYSTEM_AUDITOR");
+            System.out.print(" Enter Choice: ");
+            String roleChoice = sc.nextLine().trim();
+
+            if (roleChoice.equals("1")) {
+                role = "OWNER";
+                break;
+            } else if (roleChoice.equals("2")) {
+                role = "CASHIER";
+                break;
+            } else if (roleChoice.equals("3")) {
+                role = "SYS_AUDITOR";
+                break;
+            } else {
+                System.out.println("Invalid! Please select 1, 2, or 3 only.");
+            }
+        }
+
+        String status;
+        while (true){
+            status = InputHelper.readString(sc, "\n-- SELECT STATUS --\n [1] APPROVED\n [2] PENDING\n Enter Choice: ");
+            switch (status){
+                case "1" -> status = "APPROVED";
+                case "2" -> status = "PENDING";
+                default -> System.out.println(" Invalid Input! Enter 1 or 2.");
+            }
+            break;
+        }
+
+        if(readYesNo(sc, "Add this user?")){
+            userDao.addUser(full_name, user, pass, role, status);
+        }else {
+            System.out.println(" -> Operation Cancelled.");
+        }
+
     }
 
     private void viewUsers() {
