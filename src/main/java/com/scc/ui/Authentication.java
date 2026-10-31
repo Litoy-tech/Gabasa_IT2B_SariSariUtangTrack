@@ -1,5 +1,6 @@
 package com.scc.ui;
 
+import com.scc.dao.ProductDao;
 import com.scc.dao.UserDao;
 import com.scc.model.User;
 import com.scc.ui.admin.AdminMenu;
@@ -11,10 +12,12 @@ import java.util.Scanner;
 public class Authentication {
 
     private final UserDao userDao;
+    private final ProductDao productDao;
     private final Scanner sc;
 
-    public Authentication(UserDao userDao, Scanner sc){
+    public Authentication(UserDao userDao, ProductDao productDao,Scanner sc){
         this.userDao = userDao;
+        this.productDao = productDao;
         this.sc = sc;
     }
 
@@ -78,7 +81,7 @@ public class Authentication {
             Menu menu;
             switch (loggedIn.roles()){
                 case "ADMIN":
-                    menu = new AdminMenu( userDao,sc);
+                    menu = new AdminMenu( userDao,productDao,sc);
                     break;
                 case "CASHIER":
                     menu = new CashierMenu(userDao,sc);

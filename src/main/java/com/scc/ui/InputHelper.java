@@ -23,7 +23,7 @@ public class InputHelper {
             try {
                 return Double.parseDouble(input);
             } catch(NumberFormatException e){
-                System.out.println("Invalid input! Number lang (pananglitan 15.50).");
+                System.out.println("Invalid input!.");
             }
         }
     }
@@ -46,7 +46,7 @@ public class InputHelper {
             if(input.matches("\\d{4}")){
                 return input;
             }
-            System.out.println("PIN kinahanglan 4 ka digits lang.");
+            System.out.println(" -> [ERROR] Enter 4 digits.");
         }
     }
 

@@ -1,6 +1,7 @@
 package com.scc;
 
 import com.scc.dao.DatabaseInitializer;
+import com.scc.dao.ProductDao;
 import com.scc.dao.UserDao;
 import com.scc.ui.Authentication;
 
@@ -11,12 +12,12 @@ public class Main {
 
     public static void main(){
 
-         DatabaseInitializer.initializer();
+        DatabaseInitializer.initializer();
+        Scanner sc = new Scanner(System.in);
+        UserDao userDao = new UserDao();
+        ProductDao productDao = new ProductDao();
 
-         Scanner sc = new Scanner(System.in);
-         UserDao userDao = new UserDao();
-
-        Authentication auth = new Authentication(userDao, sc);
+        Authentication auth = new Authentication(userDao,productDao, sc);
         auth.start();
         sc.close();
 
