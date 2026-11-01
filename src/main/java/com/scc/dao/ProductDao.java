@@ -68,4 +68,51 @@ public class ProductDao {
         }
         return productList;
     }
+
+    public boolean updateProduct(int p_id, String name, String category, double price){
+        String sql = "UPDATE product_tbl SET p_name = ?, p_category = ?, p_price = ? WHERE product_id = ?";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setString(1, name);
+            pstmt.setString(2, category);
+            pstmt.setDouble(3, price);
+            pstmt.setInt(4, p_id);
+
+            int rows = pstmt.executeUpdate();
+
+            if(rows > 0){
+                System.out.println("\n -> Product Updated.");
+                return true;
+            }else {
+                System.out.println("\n -> Product ID not found.");
+            }
+        }catch (SQLException e){
+            System.err.println("Error updating: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean restockProduct(int addedQty, int p_id){
+        String sql = "UPDATE product_tbl SET stock_qty = stock_qty + ? WHERE product_id = ?";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setInt(1, addedQty);
+            pstmt.setInt(2, p_id);
+
+            int rows = pstmt.executeUpdate();
+
+            if(rows > 0){
+                System.out.println("\n -> Stock updated Successfully");
+                return true;
+            }else {
+                System.out.println("\n -> Product ID not found.");
+            }
+        }catch (SQLException e){
+            System.err.println("Error restocking: " + e.getMessage());
+        }
+        return false;
+    }
 }

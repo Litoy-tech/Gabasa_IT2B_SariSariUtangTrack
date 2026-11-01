@@ -28,8 +28,8 @@ public class ProductManagement {
             switch (choice){
                 case "1" -> addProduct();
                 case "2" -> viewProducts();
-                case "3" -> System.out.println("Edit Product (soon)");
-                case "4" -> System.out.println("Restock (soon)");
+                case "3" -> editProduct();
+                case "4" -> restockProduct();
                 case "5" -> System.out.println("Deactivate / Activate (soon)");
                 case "6" -> System.out.println("Delete Product (soon)");
                 case "0" -> { return; }
@@ -88,7 +88,6 @@ public class ProductManagement {
         }
     }
 
-
     private  void displayProductTable(List<Product> productList, String title){
         System.out.println("\n==================================================================================================");
         System.out.println("                                         " +title+ " " );
@@ -97,15 +96,14 @@ public class ProductManagement {
             System.out.println("--------------------------------------------------------------------------------------------------");
             return;
         }
-
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+----------+");
-        System.out.printf ("| %-4s | %-30s | %-20s | %8s | %5s | %-8s |\n", "ID", "Name", "Category", "Price", "Stock", "Status");
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+----------+");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+-----------+");
+        System.out.printf ("| %-4s | %-30s | %-20s | %8s | %5s | %-9s |\n", "ID", "Name", "Category", "Price", "Stock", "Status");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+-----------+");
         for(Product p: productList){
-            System.out.printf("| %-4d | %-30s | %-20s | %8.2f | %5d | %-8s |\n", p.product_id(), p.p_name(), p.p_category(), p.p_price(),
+            System.out.printf("| %-4d | %-30s | %-20s | %8.2f | %5d | %-9s |\n", p.product_id(), p.p_name(), p.p_category(), p.p_price(),
                     p.stock_qty(), p.p_status());
         }
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+----------+");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+-----------+");
     }
 
     private List<Product> filterProducts(String status, String keyword){
@@ -118,7 +116,6 @@ public class ProductManagement {
     private void viewProducts(){
         String status = null;
         String keyword = null;
-
         while (true){
             String title = (status == null) ? "ALL PRODUCTS": status + " PRODUCTS";
             if(keyword != null) title += " (search: " + keyword + ")";
@@ -137,4 +134,94 @@ public class ProductManagement {
         }
     }
 
+    private Product selectProduct(String status, String title){
+        List<Product> products = productDao.getProducts().stream().filter(u-> u.p_status().equalsIgnoreCase("AVAILABLE")).toList();
+        displayProductTable(products, title);
+
+        if(products.isEmpty()) return null;
+
+        int p_id = readInt(sc, "Enter product ID (0 to cancel):  ");
+        if(p_id == 0){
+            System.out.println(" -> Operation Cancelled.");
+            return null;
+        }
+        Product target_pId = products.stream().filter(p -> p.product_id() == p_id).findFirst().orElse(null);
+
+        if(target_pId == null){
+            System.out.println(" -> [ERROR] Product ID not found.");
+            return null;
+        }
+        return target_pId;
+    }
+
+    private void editProduct(){
+        Product target_pro = selectProduct(null, "EDIT PRODUCT");
+        if(target_pro == null) return;
+
+        System.out.println("\n--------------------------------------------");
+        System.out.println("Click [Enter] to Keep");
+        System.out.print("\nEnter name [ "+target_pro.p_name()+ " ]:");
+        String name = sc.nextLine().trim();
+
+        if(name.isEmpty()) name = target_pro.p_name();
+
+        if(!name.equalsIgnoreCase(target_pro.p_name()) && productDao.productExist(name)){
+            System.out.println(" -> [ERROR] Product already exists.");
+            return;
+        }
+
+        System.out.print("Enter Category [ "+target_pro.p_category()+" ]:  ");
+        String category = sc.nextLine().trim();
+
+        if(category.isEmpty()) category = target_pro .p_category();
+
+        double price = target_pro.p_price();
+        while(true){
+            System.out.print("Enter new Price [ "+ target_pro.p_price() + " ]:  ");
+            String in = sc.nextLine().trim();
+
+            if(in.isEmpty()) break;
+            try{
+                double newPrice = Double.parseDouble(in);
+                if(newPrice > 0){
+                    price = newPrice;
+                    break;
+                }
+                System.out.println(" -> [ERROR] Price must be above 0.");
+            }catch (NumberFormatException e){
+                System.out.println(" -> [ERROR] Invalid number.");
+            }
+        }
+
+        if(readYesNo(sc, "Save Changes? ")){
+            productDao.updateProduct(target_pro.product_id(), name, category, price);
+        }else {
+            System.out.println(" -> Update Cancelled.");
+        }
+    }
+
+    private void restockProduct(){
+        Product target_pId = selectProduct("AVAILABLE", "RESTOCK PRODUCT");
+        if(target_pId == null) return;
+
+        int addStock;
+        while(true) {
+            addStock = readInt(sc, "Enter quantity to add: ");
+            if(addStock > 0) break;
+            System.out.println(" -> [ERROR] Quantity must be above 0.");
+        }
+
+        System.out.println("\n-------------------------------");
+        System.out.println(" Product   : " + target_pId.p_name());
+        System.out.println(" Old Stock : " + target_pId.stock_qty());
+        System.out.println(" Adding    : +" + addStock);
+        System.out.println(" New Stock : " + (target_pId.stock_qty() + addStock));
+        System.out.println("-------------------------------");
+
+        if(readYesNo(sc, "Confirm restock? ")){
+            productDao.restockProduct(addStock, target_pId.product_id());
+        }else {
+            System.out.println(" -> Cancelled.");
+        }
+    }
 }
