@@ -1,9 +1,13 @@
 package com.scc.ui.systemAuditor;
 
 import com.scc.dao.UserDao;
+import com.scc.model.Audit;
 import com.scc.model.User;
 import com.scc.ui.Menu;
+import static com.scc.ui.InputHelper.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class SystemAuditorMenu implements Menu {
@@ -23,16 +27,24 @@ public class SystemAuditorMenu implements Menu {
         System.out.println("Welcome, " + SysAuditor.fullName() + "!");
 
         while (true) {
-            System.out.println("\n[1] Logout");
-            System.out.print("Enter Choice: ");
-            String choice = sc.nextLine().trim();
+            System.out.println("[1] View Audit Log\n[2] View Sales\n[3] Daily Sales Report\n[4] Utang Report\n" +
+                    "[5] Export Reports (PDF / CSV)\n" +
+                    "[0] Logout");
+            String choice = readString(sc, "Enter Choice: ");
 
-            if (choice.equals("1")) {
-                System.out.println("You have been logged out.");
-                return;
-            } else {
-                System.out.println("Invalid choice! Please enter 1 only.");
+            switch(choice){
+                case "1" -> System.out.println("View Audit");
+                case "0" -> {return;}
+                default -> System.out.println(" Enter 0-5.");
             }
         }
+    }
+
+    private void displayTable(){
+
+    }
+
+    private void logHistory(){
+        List<Audit> auditsLogs = new ArrayList<>();
     }
 }

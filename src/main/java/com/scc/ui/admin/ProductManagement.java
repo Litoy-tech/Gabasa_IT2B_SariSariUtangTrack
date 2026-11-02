@@ -93,17 +93,17 @@ public class ProductManagement {
         System.out.println("                                         " +title+ " " );
         if(productList.isEmpty()){
             System.out.println("\n-> No Records.");
-            System.out.println("--------------------------------------------------------------------------------------------------");
+            System.out.println("---------------------------------------------------------------------------------------------------");
             return;
         }
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+-----------+");
-        System.out.printf ("| %-4s | %-30s | %-20s | %8s | %5s | %-9s |\n", "ID", "Name", "Category", "Price", "Stock", "Status");
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+-----------+");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+------------+");
+        System.out.printf ("| %-4s | %-30s | %-20s | %8s | %5s | %-10s |\n", "ID", "Name", "Category", "Price", "Stock", "Status");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+------------+");
         for(Product p: productList){
-            System.out.printf("| %-4d | %-30s | %-20s | %8.2f | %5d | %-9s |\n", p.product_id(), p.p_name(), p.p_category(), p.p_price(),
+            System.out.printf("| %-4d | %-30s | %-20s | %8.2f | %5d | %-10s |\n", p.product_id(), p.p_name(), p.p_category(), p.p_price(),
                     p.stock_qty(), p.p_status());
         }
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+-----------+");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+------------+");
     }
 
     private List<Product> filterProducts(String status, String keyword){

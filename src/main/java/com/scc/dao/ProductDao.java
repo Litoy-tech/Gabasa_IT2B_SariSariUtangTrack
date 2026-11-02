@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductDao {
-    public Product mapProduct(ResultSet rs) throws SQLException {
+    private Product mapProduct(ResultSet rs) throws SQLException {
         return new Product(
                 rs.getInt("product_id"),
                 rs.getString("p_name"),

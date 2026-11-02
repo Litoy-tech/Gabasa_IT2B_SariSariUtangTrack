@@ -1,7 +1,9 @@
 package com.scc.ui;
 
+import com.scc.dao.AuditsDao;
 import com.scc.dao.ProductDao;
 import com.scc.dao.UserDao;
+import com.scc.model.Audit;
 import com.scc.model.User;
 import com.scc.ui.admin.AdminMenu;
 import com.scc.ui.cashier.CashierMenu;
@@ -13,11 +15,13 @@ public class Authentication {
 
     private final UserDao userDao;
     private final ProductDao productDao;
+    private final AuditsDao auditsDao;
     private final Scanner sc;
 
-    public Authentication(UserDao userDao, ProductDao productDao,Scanner sc){
+    public Authentication(UserDao userDao, ProductDao productDao,AuditsDao auditsDao,Scanner sc){
         this.userDao = userDao;
         this.productDao = productDao;
+        this.auditsDao = auditsDao;
         this.sc = sc;
     }
 
@@ -76,12 +80,12 @@ public class Authentication {
         }
 
         User loggedIn = userDao.login(user, pass);
-
         if(loggedIn != null){
             Menu menu;
             switch (loggedIn.roles()){
                 case "ADMIN":
                     menu = new AdminMenu( userDao,productDao,sc);
+
                     break;
                 case "CASHIER":
                     menu = new CashierMenu(userDao,sc);
@@ -93,7 +97,11 @@ public class Authentication {
                     System.out.println("Unknown Role!");
                     return;
             }
+            auditsDao.logs(loggedIn.user_id(), "LOGIN", null, null, loggedIn.username() + " logged in");
             menu.show(loggedIn);
+            auditsDao.logs(loggedIn.user_id(), "LOGOUT", null, null, loggedIn.username() + "logged out");
+        }else {
+            auditsDao.logs(null, "LOGIN FAILED", null, null, "FAILED for: " + user);
         }
     }
 
@@ -168,7 +176,7 @@ public class Authentication {
             String roleChoice = sc.nextLine().trim();
 
             if (roleChoice.equals("1")) {
-                role = "OWNER";
+                role = "ADMIN";
                 break;
             } else if (roleChoice.equals("2")) {
                 role = "CASHIER";
