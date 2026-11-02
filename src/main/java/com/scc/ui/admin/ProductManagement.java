@@ -30,8 +30,8 @@ public class ProductManagement {
                 case "2" -> viewProducts();
                 case "3" -> editProduct();
                 case "4" -> restockProduct();
-                case "5" -> System.out.println("Deactivate / Activate (soon)");
-                case "6" -> System.out.println("Delete Product (soon)");
+                case "5" -> updateStatus();
+                case "6" -> deleteProduct();
                 case "0" -> { return; }
                 default -> System.out.println("Invalid choice! 0 to 6 only.");
             }
@@ -222,6 +222,41 @@ public class ProductManagement {
             productDao.restockProduct(addStock, target_pId.product_id());
         }else {
             System.out.println(" -> Cancelled.");
+        }
+    }
+
+    private void updateStatus(){
+        Product target_id = selectProduct(null, "PRODUCT (AVAILABLE/ UNAVAILABLE)");
+        if(target_id == null) return;
+
+        String updateStatus;
+        if(target_id.p_status().equalsIgnoreCase("AVAILABLE")){
+            updateStatus = "UNAVAILABLE";
+        }else {
+            updateStatus = "AVAILABLE";
+        }
+
+        if(readYesNo(sc, "Change "+target_id.p_name()+" to " + updateStatus + "?")){
+            productDao.updateStatus(target_id.product_id(), updateStatus);
+        }else {
+            System.out.println(" -> Cancelled.");
+        }
+    }
+
+    private void deleteProduct(){
+        Product target_id = selectProduct(null, "PRODUCT DELETION");
+        if(target_id == null) return;
+
+        System.out.println("-------------------------------");
+        System.out.println("Name: "+ target_id.p_name());
+        System.out.println("Category: "+ target_id.p_category());
+        System.out.println("Price: "+ target_id.p_price());
+        System.out.println("Stock: "+ target_id.stock_qty());
+        System.out.println("-------------------------------");
+        if(readYesNo(sc, "Delete this Product?")){
+            productDao.deleteProduct(target_id.product_id());
+        }else {
+            System.out.println("\n -> Cancelled.");
         }
     }
 }

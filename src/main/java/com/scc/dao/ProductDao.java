@@ -115,4 +115,47 @@ public class ProductDao {
         }
         return false;
     }
+
+    public boolean updateStatus(int p_id, String status){
+        String sql = "UPDATE product_tbl SET p_status = ? WHERE product_id = ?";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setString(1, status);
+            pstmt.setInt(2, p_id);
+
+            int rows = pstmt.executeUpdate();
+
+            if(rows > 0){
+                System.out.println("\n Product ID: "+p_id+" Updated Successfully.");
+                return true;
+            }else {
+                System.out.println("\n -> Product ID not found.");
+            }
+        }catch(SQLException e){
+            System.err.println("Error : " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean deleteProduct(int p_id){
+        String sql = "DELETE FROM product_tbl WHERE product_id = ?";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setInt(1, p_id);
+
+            int rowsDelete = pstmt.executeUpdate();
+
+            if(rowsDelete > 0){
+                System.out.println("\n Product ID: "+p_id+" Deleted Successfully.");
+                return true;
+            }else {
+                System.out.println("\n -> Product ID not found.");
+            }
+        }catch (SQLException e){
+            System.err.println("Error Deleting: " + e.getMessage());
+        }
+        return false;
+    }
 }
