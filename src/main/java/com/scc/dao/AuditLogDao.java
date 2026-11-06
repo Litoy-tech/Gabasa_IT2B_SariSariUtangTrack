@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AuditsDao {
+public class AuditLogDao {
 
     private Audit mapAudit(ResultSet rs) throws SQLException{
         int r_id = rs.getInt("record_id");
@@ -20,7 +20,7 @@ public class AuditsDao {
                 user,
                 rs.getString("action"),
                 rs.getString("table_affected"),
-                rs.getInt("record_id"),
+                recordId,
                 rs.getString("Description"),
                 rs.getString("log_timestamp")
         );

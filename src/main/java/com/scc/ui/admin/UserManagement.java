@@ -1,5 +1,6 @@
 package com.scc.ui.admin;
 
+import com.scc.dao.AuditLogDao;
 import com.scc.dao.UserDao;
 import com.scc.model.User;
 import com.scc.ui.InputHelper;
@@ -12,10 +13,12 @@ import static com.scc.ui.InputHelper.*;
 
 public class UserManagement {
     private final UserDao userDao;
+    private final AuditLogDao logDao;
     private final Scanner sc;
 
-    public UserManagement(UserDao userDao, Scanner sc){
+    public UserManagement(UserDao userDao, AuditLogDao logDao, Scanner sc){
         this.userDao = userDao;
+        this.logDao = logDao;
         this.sc = sc;
     }
 
@@ -29,9 +32,9 @@ public class UserManagement {
             String choice = InputHelper.readString(sc, "Enter Choice: ");
 
             switch (choice) {
-                case "1" -> registerUser();
+                case "1" -> registerUser(admin);
                 case "2" -> viewUsers();
-                case "3" -> approvedUser();
+                case "3" -> approvedUser(admin);
                 case "4" -> updateUserRole(admin);
                 case "5" -> updateUserStatus(admin);
                 case "6" -> deleteUser(admin);
@@ -68,8 +71,7 @@ public class UserManagement {
     }
 
 
-    private void registerUser() {
-
+    private void registerUser(User admin) {
         System.out.println("\n    ===== REGISTER USER =====");
 
         String full_name;
@@ -139,7 +141,7 @@ public class UserManagement {
             String roleChoice = sc.nextLine().trim();
 
             if (roleChoice.equals("1")) {
-                role = "OWNER";
+                role = "ADMIN";
                 break;
             } else if (roleChoice.equals("2")) {
                 role = "CASHIER";
@@ -153,18 +155,23 @@ public class UserManagement {
         }
 
         String status;
-        while (true){
-            status = InputHelper.readString(sc, "\n-- SELECT STATUS --\n [1] APPROVED\n [2] PENDING\n Enter Choice: ");
-            switch (status){
-                case "1" -> status = "APPROVED";
-                case "2" -> status = "PENDING";
-                default -> System.out.println(" Invalid Input! Enter 1 or 2.");
+        while (true) {
+            String statusChoice = InputHelper.readString(sc, "\n-- SELECT STATUS --\n [1] APPROVED\n [2] PENDING\n Enter Choice: ");
+            if (statusChoice.equals("1")) {
+                status = "APPROVED";
+                break;
+            } else if (statusChoice.equals("2")) {
+                status = "PENDING";
+                break;
+            } else {
+                System.out.println(" Invalid Input! Enter 1 or 2.");
             }
-            break;
         }
 
         if(readYesNo(sc, "Add this user?")){
-            userDao.addUser(full_name, user, pass, role, status);
+            if(userDao.addUser(full_name, user, pass, role, status)){
+                logDao.logs(admin.user_id(), "ADD USER", "users", null, "Added user: " + user);
+            }
         }else {
             System.out.println(" -> Operation Cancelled.");
         }
@@ -192,7 +199,7 @@ public class UserManagement {
         }
     }
 
-    private void approvedUser(){
+    private void approvedUser(User admin){
         List<User> pendingUsers = userDao.getPendingUser();
         displayUserTable(pendingUsers, " PENDING APPROVALS ");
 
@@ -205,14 +212,16 @@ public class UserManagement {
             return;
         }
 
-        boolean exits = pendingUsers.stream().anyMatch(u -> u.user_id() == userId);
-        if(!exits){
+        User target = pendingUsers.stream().filter(u-> u.user_id() == userId).findFirst().orElse(null);
+        if(target == null){
             System.out.println(" -> [ERROR] User ID not found");
             return;
         }
 
         if(readYesNo(sc, "Approved this User?")){
-            userDao.approvedUser(userId);
+            if(userDao.approvedUser(userId)){
+                logDao.logs(admin.user_id(),  "APPROVED USER", "users", userId, "APPROVED user: " + target.username());
+            }
         }else{
             System.out.println(" -> Cancelled.");
         }
@@ -254,7 +263,9 @@ public class UserManagement {
         }
 
         if(readYesNo(sc, " Change " + target.username() + " from " + target.roles() + " to " + newRole + "?")){
-            userDao.updateUserRoleAndStatus(userId, newRole, target.status());
+            if(userDao.updateUserRoleAndStatus(userId, newRole, target.status())){
+                logDao.logs(admin.user_id(), "UPDATE USER ROLE", "users", userId, "Change role of user: " + target.username() + " to " + newRole);
+            }
         }else{
             System.out.println(" -> Cancelled.");
         }
@@ -309,9 +320,10 @@ public class UserManagement {
             System.out.println(" -> [ERROR] User is already " + newStatus + ".");
             return;
         }
-
         if(readYesNo(sc, " Change " + target.username() + " from " + target.status() + " to " + newStatus + "?")){
-            userDao.updateUserRoleAndStatus(userId, target.roles(), newStatus);
+            if(userDao.updateUserRoleAndStatus(userId, target.roles(), newStatus)){
+                logDao.logs(admin.user_id(), "UPDATE USER STATUS", "users", userId, "Changed status of user: " + target.username() + " to " + newStatus);
+            }
         }else{
             System.out.println(" -> Cancelled.");
         }
@@ -353,18 +365,19 @@ public class UserManagement {
             return;
         }
 
-        boolean exist = deletingUsers.stream().anyMatch(u -> u.user_id() == userId);
+        User target = deletingUsers.stream().filter(u -> u.user_id() == userId).findFirst().orElse(null);
 
-        if(!exist){
+        if(target == null){
             System.out.println(" -> [ERROR] User ID not found");
             return;
         }
 
         if(readYesNo(sc, "Delete this User?")){
-            userDao.deletedUser(userId);
+            if(userDao.deletedUser(userId)){
+                logDao.logs(admin.user_id(), "DELETE USER", "users", userId, "Deleted user with ID: " + userId);
+            }
         }else{
             System.out.println(" -> Cancelled.");
         }
     }
-
 }

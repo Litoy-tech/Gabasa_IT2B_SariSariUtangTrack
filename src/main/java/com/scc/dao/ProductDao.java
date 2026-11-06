@@ -18,22 +18,28 @@ public class ProductDao {
         );
     }
 
-    public boolean addProduct(String name, String category, double price, int stock){
+    public int addProduct(String name, String category, double price, int stock){
         String sql = "INSERT INTO product_tbl(p_name, p_category, p_price, stock_qty) VALUES(?, ?, ?, ?)";
 
         try(Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)){
+            PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
 
             pstmt.setString(1, name);
             pstmt.setString(2, category);
             pstmt.setDouble(3, price);
             pstmt.setInt(4, stock);
             pstmt.executeUpdate();
-            System.out.println("\n -> Product added successfully.");
-            return true;
+
+            try(ResultSet keys = pstmt.getGeneratedKeys()){
+                if(keys.next()){
+                    System.out.println("\n -> Product added successfully.");
+                    return keys.getInt(1);
+                }
+            }
+            return -1;
         }catch(SQLException e){
             System.err.println("Failed" + e.getMessage());
-            return false;
+            return -1;
         }
     }
 

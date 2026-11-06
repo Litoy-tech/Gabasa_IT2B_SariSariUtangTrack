@@ -1,7 +1,9 @@
 package com.scc.ui.admin;
 
+import com.scc.dao.AuditLogDao;
 import com.scc.dao.ProductDao;
 import com.scc.model.Product;
+import com.scc.model.User;
 
 import static com.scc.ui.InputHelper.*;
 
@@ -10,14 +12,16 @@ import java.util.Scanner;
 
 public class ProductManagement {
     private final ProductDao productDao;
+    private final AuditLogDao logDao;
     private final Scanner sc;
 
-    public ProductManagement(ProductDao productDao, Scanner sc){
+    public ProductManagement(ProductDao productDao, AuditLogDao logDao,Scanner sc){
         this.productDao = productDao;
+        this.logDao = logDao;
         this.sc = sc;
     }
 
-    public void show(){
+    public void show(User admin){
         while (true){
             System.out.println("\n===============================");
             System.out.println("        MANAGE PRODUCT");
@@ -26,19 +30,19 @@ public class ProductManagement {
             String choice = readString(sc, "Enter Choice: ");
 
             switch (choice){
-                case "1" -> addProduct();
+                case "1" -> addProduct(admin);
                 case "2" -> viewProducts();
-                case "3" -> editProduct();
-                case "4" -> restockProduct();
-                case "5" -> updateStatus();
-                case "6" -> deleteProduct();
+                case "3" -> editProduct(admin);
+                case "4" -> restockProduct(admin);
+                case "5" -> updateStatus(admin);
+                case "6" -> deleteProduct(admin);
                 case "0" -> { return; }
                 default -> System.out.println("Invalid choice! 0 to 6 only.");
             }
         }
     }
 
-    private void addProduct(){
+    private void addProduct(User admin){
         System.out.println("\n===============================");
         System.out.println("          ADD PRODUCT");
         System.out.println("===============================");
@@ -82,7 +86,11 @@ public class ProductManagement {
         System.out.println("-------------------------------");
 
         if(readYesNo(sc, "Add this Product?")){
-            productDao.addProduct(name, category, price, stock);
+            int id = (productDao.addProduct(name, category, price, stock));
+            if(id != -1){
+                logDao.logs(admin.user_id(), "ADD PRODUCT", "product_tbl", null, "Added product: " + name +
+                        " | Category: " + category + " | Price: " + price + " | Stock: " + stock);
+            }
         }else {
             System.out.println(" -> Cancelled.");
         }
@@ -121,12 +129,12 @@ public class ProductManagement {
             if(keyword != null) title += " (search: " + keyword + ")";
             displayProductTable(filterProducts(status, keyword), title);
 
-            String choice = readString(sc, "Filter ([1] ALL | [2] ACTIVE | [3] INACTIVE | [4] Search | [0] Back): ").trim();
+            String choice = readString(sc, "Filter ([1] ALL | [2] AVAILABLE  | [3] UNAVAILABLE  | [4] Search | [0] Back): ").trim();
 
             switch (choice){
                 case "1" -> {status = null; keyword = null; }
-                case "2" -> status = "ACTIVE";
-                case "3" -> status = "INACTIVE";
+                case "2" -> status = "AVAILABLE";
+                case "3" -> status = "UNAVAILABLE";
                 case "4" -> keyword = readString(sc, "Enter product name to search: ");
                 case "0" -> {return;}
                 default ->  System.out.println(" -> [ERROR] Invalid choice. 0 to 4 only.");
@@ -135,7 +143,7 @@ public class ProductManagement {
     }
 
     private Product selectProduct(String status, String title){
-        List<Product> products = productDao.getProducts().stream().filter(u-> u.p_status().equalsIgnoreCase("AVAILABLE")).toList();
+        List<Product> products = productDao.getProducts().stream().filter(p-> status == null || p.p_status().equalsIgnoreCase(status)).toList();
         displayProductTable(products, title);
 
         if(products.isEmpty()) return null;
@@ -154,7 +162,7 @@ public class ProductManagement {
         return target_pId;
     }
 
-    private void editProduct(){
+    private void editProduct(User admin){
         Product target_pro = selectProduct(null, "EDIT PRODUCT");
         if(target_pro == null) return;
 
@@ -194,13 +202,16 @@ public class ProductManagement {
         }
 
         if(readYesNo(sc, "Save Changes? ")){
-            productDao.updateProduct(target_pro.product_id(), name, category, price);
+            if(productDao.updateProduct(target_pro.product_id(), name, category, price)){
+                logDao.logs(admin.user_id(), "UPDATE PRODUCT", "product_tbl", target_pro.product_id(), "Updated product: " + name +
+                        " | Category: " + category + " | Price: " + price);
+            }
         }else {
             System.out.println(" -> Update Cancelled.");
         }
     }
 
-    private void restockProduct(){
+    private void restockProduct(User admin){
         Product target_pId = selectProduct("AVAILABLE", "RESTOCK PRODUCT");
         if(target_pId == null) return;
 
@@ -219,13 +230,16 @@ public class ProductManagement {
         System.out.println("-------------------------------");
 
         if(readYesNo(sc, "Confirm restock? ")){
-            productDao.restockProduct(addStock, target_pId.product_id());
+            if(productDao.restockProduct(addStock, target_pId.product_id())){
+                logDao.logs(admin.user_id(), "RESTOCK PRODUCT", "product_tbl", target_pId.product_id(), "Restocked product: " + target_pId.p_name() +
+                        " | Old Stock: " + target_pId.stock_qty() + " | Added: " + addStock + " | New Stock: " + (target_pId.stock_qty() + addStock));
+            }
         }else {
             System.out.println(" -> Cancelled.");
         }
     }
 
-    private void updateStatus(){
+    private void updateStatus(User admin){
         Product target_id = selectProduct(null, "PRODUCT (AVAILABLE/ UNAVAILABLE)");
         if(target_id == null) return;
 
@@ -237,13 +251,16 @@ public class ProductManagement {
         }
 
         if(readYesNo(sc, "Change "+target_id.p_name()+" to " + updateStatus + "?")){
-            productDao.updateStatus(target_id.product_id(), updateStatus);
+            if(productDao.updateStatus(target_id.product_id(), updateStatus)){
+                logDao.logs(admin.user_id(), "UPDATE PRODUCT STATUS", "product_tbl", target_id.product_id(), "Changed product: " + target_id.p_name() +
+                        " status from: " + target_id.p_status() + " to: " + updateStatus);
+            }
         }else {
             System.out.println(" -> Cancelled.");
         }
     }
 
-    private void deleteProduct(){
+    private void deleteProduct(User admin){
         Product target_id = selectProduct(null, "PRODUCT DELETION");
         if(target_id == null) return;
 
@@ -254,7 +271,10 @@ public class ProductManagement {
         System.out.println("Stock: "+ target_id.stock_qty());
         System.out.println("-------------------------------");
         if(readYesNo(sc, "Delete this Product?")){
-            productDao.deleteProduct(target_id.product_id());
+            if(productDao.deleteProduct(target_id.product_id())){
+                logDao.logs(admin.user_id(), "DELETE PRODUCT", "product_tbl", target_id.product_id(), "Deleted product: " + target_id.p_name() +
+                        " | Category: " + target_id.p_category() + " | Price: " + target_id.p_price() + " | Stock: " + target_id.stock_qty());
+            }
         }else {
             System.out.println("\n -> Cancelled.");
         }

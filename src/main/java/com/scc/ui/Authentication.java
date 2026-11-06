@@ -1,9 +1,8 @@
 package com.scc.ui;
 
-import com.scc.dao.AuditsDao;
+import com.scc.dao.AuditLogDao;
 import com.scc.dao.ProductDao;
 import com.scc.dao.UserDao;
-import com.scc.model.Audit;
 import com.scc.model.User;
 import com.scc.ui.admin.AdminMenu;
 import com.scc.ui.cashier.CashierMenu;
@@ -14,14 +13,14 @@ import java.util.Scanner;
 public class Authentication {
 
     private final UserDao userDao;
+    private final AuditLogDao logDao;
     private final ProductDao productDao;
-    private final AuditsDao auditsDao;
     private final Scanner sc;
 
-    public Authentication(UserDao userDao, ProductDao productDao,AuditsDao auditsDao,Scanner sc){
+    public Authentication(UserDao userDao, AuditLogDao logDao, ProductDao productDao, Scanner sc){
         this.userDao = userDao;
+        this.logDao = logDao;
         this.productDao = productDao;
-        this.auditsDao = auditsDao;
         this.sc = sc;
     }
 
@@ -84,24 +83,23 @@ public class Authentication {
             Menu menu;
             switch (loggedIn.roles()){
                 case "ADMIN":
-                    menu = new AdminMenu( userDao,productDao,sc);
-
+                    menu = new AdminMenu( userDao, logDao, productDao, sc);
                     break;
                 case "CASHIER":
                     menu = new CashierMenu(userDao,sc);
                     break;
                 case "SYS_AUDITOR":
-                    menu = new SystemAuditorMenu(userDao,sc);
+                    menu = new SystemAuditorMenu(userDao,logDao, sc);
                     break;
                 default:
                     System.out.println("Unknown Role!");
                     return;
             }
-            auditsDao.logs(loggedIn.user_id(), "LOGIN", null, null, loggedIn.username() + " logged in");
+            logDao.logs(loggedIn.user_id(), "LOGIN", null, null, loggedIn.username() + " logged in ");
             menu.show(loggedIn);
-            auditsDao.logs(loggedIn.user_id(), "LOGOUT", null, null, loggedIn.username() + "logged out");
+            logDao.logs(loggedIn.user_id(), "LOGOUT", null, null, loggedIn.username() + " logged out ");
         }else {
-            auditsDao.logs(null, "LOGIN FAILED", null, null, "FAILED for: " + user);
+            logDao.logs(null, "LOGIN FAILED", null, null, "FAILED for: " + user);
         }
     }
 
