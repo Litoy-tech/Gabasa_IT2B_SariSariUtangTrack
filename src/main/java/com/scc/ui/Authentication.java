@@ -1,6 +1,7 @@
 package com.scc.ui;
 
 import com.scc.dao.AuditLogDao;
+import com.scc.dao.CustomerDao;
 import com.scc.dao.ProductDao;
 import com.scc.dao.UserDao;
 import com.scc.model.User;
@@ -13,14 +14,16 @@ import java.util.Scanner;
 public class Authentication {
 
     private final UserDao userDao;
-    private final AuditLogDao logDao;
     private final ProductDao productDao;
+    private final CustomerDao customerDao;
+    private final AuditLogDao logDao;
     private final Scanner sc;
 
-    public Authentication(UserDao userDao, AuditLogDao logDao, ProductDao productDao, Scanner sc){
-        this.userDao = userDao;
-        this.logDao = logDao;
+    public Authentication(UserDao userdao,CustomerDao customerDao, ProductDao productDao, AuditLogDao logDao,Scanner sc){
+        this.userDao = userdao;
+        this.customerDao = customerDao;
         this.productDao = productDao;
+        this.logDao = logDao;
         this.sc = sc;
     }
 
@@ -83,10 +86,10 @@ public class Authentication {
             Menu menu;
             switch (loggedIn.roles()){
                 case "ADMIN":
-                    menu = new AdminMenu( userDao, logDao, productDao, sc);
+                    menu = new AdminMenu( userDao, customerDao, productDao, logDao, sc);
                     break;
                 case "CASHIER":
-                    menu = new CashierMenu(userDao,sc);
+                    menu = new CashierMenu(userDao, productDao, customerDao, sc);
                     break;
                 case "SYS_AUDITOR":
                     menu = new SystemAuditorMenu(userDao,logDao, sc);
@@ -122,7 +125,7 @@ public class Authentication {
         String user;
         while (true) {
             System.out.print("Enter username: ");
-            user = sc.nextLine().trim().toLowerCase();
+            user = sc.nextLine().trim();
 
             if (user.length() < 5) {
                 System.out.println("Invalid! Username must be at least 5 characters.");

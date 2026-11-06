@@ -5,7 +5,7 @@ import com.scc.dao.UserDao;
 import com.scc.model.Audit;
 import com.scc.model.User;
 import com.scc.ui.Menu;
-import static com.scc.ui.InputHelper.*;
+import static com.scc.util.InputHelper.*;
 
 import java.util.List;
 import java.util.Scanner;

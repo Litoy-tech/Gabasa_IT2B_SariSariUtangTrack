@@ -5,7 +5,7 @@ import com.scc.dao.ProductDao;
 import com.scc.model.Product;
 import com.scc.model.User;
 
-import static com.scc.ui.InputHelper.*;
+import static com.scc.util.InputHelper.*;
 
 import java.util.List;
 import java.util.Scanner;
@@ -88,7 +88,7 @@ public class ProductManagement {
         if(readYesNo(sc, "Add this Product?")){
             int id = (productDao.addProduct(name, category, price, stock));
             if(id != -1){
-                logDao.logs(admin.user_id(), "ADD PRODUCT", "product_tbl", null, "Added product: " + name +
+                logDao.logs(admin.user_id(), "ADD PRODUCT", "product_tbl", id, "Added product: " + name +
                         " | Category: " + category + " | Price: " + price + " | Stock: " + stock);
             }
         }else {
@@ -101,17 +101,17 @@ public class ProductManagement {
         System.out.println("                                         " +title+ " " );
         if(productList.isEmpty()){
             System.out.println("\n-> No Records.");
-            System.out.println("---------------------------------------------------------------------------------------------------");
+            System.out.println("-----------------------------------------------------------------------------------------------------");
             return;
         }
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+------------+");
-        System.out.printf ("| %-4s | %-30s | %-20s | %8s | %5s | %-10s |\n", "ID", "Name", "Category", "Price", "Stock", "Status");
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+------------+");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+--------------+");
+        System.out.printf ("| %-4s | %-30s | %-20s | %8s | %5s | %-12s |\n", "ID", "Name", "Category", "Price", "Stock", "Status");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+--------------+");
         for(Product p: productList){
-            System.out.printf("| %-4d | %-30s | %-20s | %8.2f | %5d | %-10s |\n", p.product_id(), p.p_name(), p.p_category(), p.p_price(),
+            System.out.printf("| %-4d | %-30s | %-20s | %8.2f | %5d | %-12s |\n", p.product_id(), p.p_name(), p.p_category(), p.p_price(),
                     p.stock_qty(), p.p_status());
         }
-        System.out.println("+------+--------------------------------+----------------------+----------+-------+------------+");
+        System.out.println("+------+--------------------------------+----------------------+----------+-------+--------------+");
     }
 
     private List<Product> filterProducts(String status, String keyword){

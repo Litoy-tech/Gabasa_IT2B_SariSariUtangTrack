@@ -48,7 +48,6 @@ public class UserDao {
 
     }
 
-
     public boolean registerUser(String fullName ,String username, String password, String role){
 
         String sql = "INSERT INTO users(fullName, username, password, roles, status) VALUES(?, ?, ?, ?, 'PENDING')";
@@ -136,9 +135,9 @@ public class UserDao {
         List<User> pendingList = new ArrayList<>();
         String sql = "SELECT * FROM users WHERE status = 'PENDING'";
 
-        try(Connection conn = DatabaseConnection.getConnection()){
+        try(Connection conn = DatabaseConnection.getConnection();
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+            ResultSet rs = stmt.executeQuery(sql)){
             while(rs.next()){
                 pendingList.add(mapUser(rs));
             }
@@ -183,10 +182,10 @@ public class UserDao {
             } else {
                 System.out.println(" -> User ID not found!");
             }
-        }catch (SQLIntegrityConstraintViolationException e){
-            System.out.println(" -> [ERROR] Cannot delete: this user has existing records. Set the status to INACTIVE instead.");
         }catch (SQLException e){
-            System.err.println("Error fetching users" + e.getMessage());
+            if(e.getMessage() != null && e.getMessage().toUpperCase().contains("FOREIGN KEY")){
+                System.out.println(" -> [ERROR] Cannot delete: this user has existing records. Set the status to INACTIVE instead.");
+            }else System.err.println("Error deleting user: " + e.getMessage());
         }
         return false;
     }

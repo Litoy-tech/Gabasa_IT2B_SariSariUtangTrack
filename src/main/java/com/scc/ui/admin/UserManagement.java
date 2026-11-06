@@ -3,13 +3,13 @@ package com.scc.ui.admin;
 import com.scc.dao.AuditLogDao;
 import com.scc.dao.UserDao;
 import com.scc.model.User;
-import com.scc.ui.InputHelper;
+import com.scc.util.InputHelper;
 
 
 import java.util.List;
 import java.util.Scanner;
 
-import static com.scc.ui.InputHelper.*;
+import static com.scc.util.InputHelper.*;
 
 public class UserManagement {
     private final UserDao userDao;
@@ -43,6 +43,7 @@ public class UserManagement {
             }
         }
     }
+
 
     private void displayUserTable(List<User> users, String title){
         System.out.println("\n==================================================================================================");

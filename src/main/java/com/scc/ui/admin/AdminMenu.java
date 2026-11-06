@@ -1,24 +1,27 @@
 package com.scc.ui.admin;
 
 import com.scc.dao.AuditLogDao;
+import com.scc.dao.CustomerDao;
 import com.scc.dao.ProductDao;
 import com.scc.dao.UserDao;
 import com.scc.model.User;
-import com.scc.ui.InputHelper;
+import com.scc.util.InputHelper;
 import com.scc.ui.Menu;
 
 import java.util.Scanner;
 
 public class AdminMenu implements Menu {
     private final UserDao userdao;
-    private final AuditLogDao logDao;
     private final ProductDao productDao;
+    private final CustomerDao customerDao;
+    private final AuditLogDao logDao;
     private final Scanner sc;
 
-    public AdminMenu(UserDao userdao, AuditLogDao logDao,ProductDao productDao,Scanner sc){
+    public AdminMenu(UserDao userdao,CustomerDao customerDao, ProductDao productDao, AuditLogDao logDao,Scanner sc){
         this.userdao = userdao;
-        this.logDao = logDao;
+        this.customerDao = customerDao;
         this.productDao = productDao;
+        this.logDao = logDao;
         this.sc = sc;
     }
 
@@ -35,7 +38,7 @@ public class AdminMenu implements Menu {
 
             switch(choice){
                 case 1 -> new ProductManagement(productDao, logDao,sc).show(admin);
-                case 2 -> System.out.println("Manage Customers (soon)");
+                case 2 -> new CustomerManagement(userdao, customerDao, logDao, sc).show(admin);
                 case 3 -> new UserManagement(userdao, logDao,sc).show(admin);
                 case 4 -> System.out.println("View Sales (soon)");
                 case 5 -> System.out.println("Reports (soon)");
