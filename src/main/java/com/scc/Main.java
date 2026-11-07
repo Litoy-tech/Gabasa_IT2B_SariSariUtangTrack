@@ -15,9 +15,10 @@ public class Main {
         UserDao userDao = new UserDao();
         CustomerDao customerDao = new CustomerDao();
         ProductDao productDao = new ProductDao();
+        SalesDao salesDao = new SalesDao();
         AuditLogDao auditLogDao = new AuditLogDao();
 
-        Authentication auth = new Authentication(userDao, customerDao, productDao, auditLogDao, sc);
+        Authentication auth = new Authentication(userDao, customerDao, productDao, salesDao, auditLogDao, sc);
         auth.start();
         sc.close();
 

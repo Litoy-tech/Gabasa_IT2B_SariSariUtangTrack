@@ -1,9 +1,7 @@
 package com.scc.ui;
 
-import com.scc.dao.AuditLogDao;
-import com.scc.dao.CustomerDao;
-import com.scc.dao.ProductDao;
-import com.scc.dao.UserDao;
+import com.scc.dao.*;
+import com.scc.model.Customer;
 import com.scc.model.User;
 import com.scc.ui.admin.AdminMenu;
 import com.scc.ui.cashier.CashierMenu;
@@ -16,13 +14,15 @@ public class Authentication {
     private final UserDao userDao;
     private final ProductDao productDao;
     private final CustomerDao customerDao;
+    private final SalesDao salesDao;
     private final AuditLogDao logDao;
     private final Scanner sc;
 
-    public Authentication(UserDao userdao,CustomerDao customerDao, ProductDao productDao, AuditLogDao logDao,Scanner sc){
+    public Authentication(UserDao userdao,CustomerDao customerDao, ProductDao productDao, SalesDao salesDao,AuditLogDao logDao,Scanner sc){
         this.userDao = userdao;
         this.customerDao = customerDao;
         this.productDao = productDao;
+        this.salesDao = salesDao;
         this.logDao = logDao;
         this.sc = sc;
     }
@@ -89,7 +89,7 @@ public class Authentication {
                     menu = new AdminMenu( userDao, customerDao, productDao, logDao, sc);
                     break;
                 case "CASHIER":
-                    menu = new CashierMenu(userDao, productDao, customerDao, sc);
+                    menu = new CashierMenu(userDao, productDao, customerDao, salesDao,logDao,sc);
                     break;
                 case "SYS_AUDITOR":
                     menu = new SystemAuditorMenu(userDao,logDao, sc);

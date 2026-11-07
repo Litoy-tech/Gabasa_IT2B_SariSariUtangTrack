@@ -68,6 +68,9 @@ public class CustomerDao {
                 }
                 conn.rollback();
                 return -1;
+            }catch (SQLException e){
+                conn.rollback();
+                throw e;
             }
         }catch (SQLException e){
             System.err.println("Error adding customer: " + e.getMessage());
@@ -242,6 +245,55 @@ public class CustomerDao {
             }else {
                 System.err.println("Error deleting customer: " + e.getMessage());
             }
+        }
+        return false;
+    }
+
+    public boolean verifyPin(int customerId, String pin){
+        String sql = "SELECT pin_hash, failed_pin_attempts, status FROM customer_tbl WHERE customer_id = ?";
+        String failSql = "UPDATE customer_tbl SET failed_pin_attempts = failed_pin_attempts + 1, " +
+                "status = CASE WHEN failed_pin_attempts + 1 >= 3 THEN 'LOCKED' ELSE status END WHERE customer_id = ?";
+        String okSql = "UPDATE customer_tbl SET failed_pin_attempts = 0 WHERE customer_id = ?";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setInt(1, customerId);
+            try(ResultSet rs = pstmt.executeQuery()){
+                if(!rs.next()){
+                    System.out.println("\n -> Customer ID not found.");
+                    return false;
+                }
+
+                if("LOCKED".equalsIgnoreCase(rs.getString("status"))){
+                    System.out.println("\n -> [LOCKED] Customer PIN is locked. Ask the Owner to reset it.");
+                    return false;
+                }
+
+                int attempts = rs.getInt("failed_pin_attempts");
+                boolean match = rs.getString("pin_hash").equals(pin);
+
+                if(match){
+                    try(PreparedStatement ok = conn.prepareStatement(okSql)){
+                        ok.setInt(1, customerId);
+                        ok.executeUpdate();
+                    }
+                    return true;
+                }
+
+                try(PreparedStatement fail = conn.prepareStatement(failSql)){
+                    fail.setInt(1, customerId);
+                    fail.executeUpdate();
+                }
+                int left = 3 - (attempts + 1);
+                if(left <= 0){
+                    System.out.println("\n -> Wrong PIN. Customer is now LOCKED. Ask the Owner to reset it.");
+                }else {
+                    System.out.println("\n -> Wrong PIN. Attempts left: " + left);
+                }
+            }
+        }catch (SQLException e){
+            System.err.println("Error verifying PIN: " + e.getMessage());
         }
         return false;
     }
