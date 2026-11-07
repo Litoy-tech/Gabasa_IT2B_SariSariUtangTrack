@@ -12,6 +12,8 @@ import com.scc.model.Sales;
 import com.scc.model.SalesItem;
 import com.scc.model.User;
 import com.scc.ui.Menu;
+import com.scc.util.InputHelper;
+
 import static com.scc.util.InputHelper.*;
 
 import java.util.HashMap;
@@ -98,7 +100,7 @@ public class SystemAuditorMenu implements Menu {
             if(keyword != null) title += " (search: " + keyword + ")";
             displayLogTable(filterLogs(category, keyword), title);
 
-            String choice = readString(sc, "Filter ([1] ALL | [2] LOGIN/LOGOUT | [3] PRODUCTS | [4] USERS | [5] CUSTOMERS | [6] SALES | [7] Search | [0] Back): ").trim();
+            String choice = readString(sc, "Filter ([1] ALL | [2] LOGIN/LOGOUT | [3] PRODUCTS | [4] USERS | [5] CUSTOMERS | [6] SALES | [7] Filter by User ID | [0] Back): ").trim();
 
             switch (choice){
                 case "1" -> {category = null; keyword = null;}
@@ -107,7 +109,12 @@ public class SystemAuditorMenu implements Menu {
                 case "4" -> category = "USERS";
                 case "5" -> category = "CUSTOMERS";
                 case "6" -> category = "SALES";
-                case "7" -> keyword = readString(sc, "Enter keyword (user, action or description): ");
+                case "7" -> {
+                    int userId = readInt(sc, "Enter user ID: ");
+                    List<Audit> userLogs = logDao.getLogUserByID(userId);
+                    displayLogTable(userLogs, "AUDIT LOGS FOR USER ID: " + userId);
+
+                }
                 case "0" -> {return;}
                 default -> System.out.println(" -> [ERROR] Invalid choice. 0 to 7 only.");
             }
@@ -116,7 +123,7 @@ public class SystemAuditorMenu implements Menu {
 
     private void displayLogTable(List<Audit> logs, String title){
         System.out.println("\n===========================================================================================================================================================");
-        System.out.println("                                         " + title + " ");
+        System.out.println("                                                                " + title + " ");
         if(logs.isEmpty()){
             System.out.println("\n-> No Records.");
             System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------");

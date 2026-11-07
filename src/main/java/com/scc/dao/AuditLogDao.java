@@ -1,7 +1,6 @@
 package com.scc.dao;
 
 import com.scc.model.Audit;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,32 @@ public class AuditLogDao {
             System.err.println("Error fetching audit logs: " + e.getMessage());
         }
         return audit_list;
+    }
+
+    public List<Audit> getLogUserByID(int userID){
+        List<Audit> audits_list = new ArrayList<>();
+
+        String sql = "SELECT a.log_id, u.username, a.action, " +
+                "a.table_affected, a.record_id, a.description, a.log_timestamp " +
+                "FROM audit_logs a " +
+                "LEFT JOIN users u ON a.user_id = u.user_id " +
+                "WHERE a.user_id = ? " +
+                "ORDER BY a.log_timestamp DESC";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement psmt = conn.prepareStatement(sql)){
+
+            psmt.setInt(1, userID);
+
+            try(ResultSet rs = psmt.executeQuery()){
+                while(rs.next()){
+                    audits_list.add(mapAudit(rs));
+                }
+            }
+        }catch (SQLException e){
+            System.err.println("Error fetching user audit logs: " + e.getMessage());
+        }
+        return audits_list;
     }
 
     public boolean logs(Integer userId, String action, String tableAffected, Integer recordId, String description){
