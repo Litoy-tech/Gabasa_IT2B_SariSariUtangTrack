@@ -42,10 +42,10 @@ public class SystemAuditorMenu implements Menu {
     @Override
     public void show(User SysAuditor) {
         while (true) {
-        System.out.println("\n===============================");
-        System.out.println("     SYSTEM AUDITOR MENU");
-        System.out.println("===============================");
-        System.out.println("Welcome, " + SysAuditor.fullName() + "!");
+            System.out.println("\n===============================");
+            System.out.println("     SYSTEM AUDITOR MENU");
+            System.out.println("===============================");
+            System.out.println("Welcome, " + SysAuditor.fullName() + "!");
 
             System.out.println("\n[1] View Audit Log\n[2] View Sales\n[3] Daily Sales Report\n[4] Utang Report\n" +
                     "[5] Export Reports (PDF / CSV)\n" +
@@ -82,39 +82,32 @@ public class SystemAuditorMenu implements Menu {
         };
     }
 
-    private List<Audit> filterLogs(String category, String keyword){
+    private List<Audit> filterLogs(String category, Integer userId){
         return logDao.getAllLogs().stream()
                 .filter(a -> category == null || matchesCategory(a, category))
-                .filter(a -> keyword == null || containsIgnoreCase(a.username(), keyword)
-                        || containsIgnoreCase(a.action(), keyword)
-                        || containsIgnoreCase(a.description(), keyword))
+                .filter(a -> userId == null || userId.equals(a.user_id()))
                 .toList();
     }
 
     private void logHistory(){
         String category = null;
-        String keyword = null;
+        Integer userId = null;
 
         while (true){
             String title = (category == null) ? "ALL AUDIT LOGS" : category + " LOGS";
-            if(keyword != null) title += " (search: " + keyword + ")";
-            displayLogTable(filterLogs(category, keyword), title);
+            if(userId != null) title += " (user ID: " + userId + ")";
+            displayLogTable(filterLogs(category, userId), title);
 
             String choice = readString(sc, "Filter ([1] ALL | [2] LOGIN/LOGOUT | [3] PRODUCTS | [4] USERS | [5] CUSTOMERS | [6] SALES | [7] Filter by User ID | [0] Back): ").trim();
 
             switch (choice){
-                case "1" -> {category = null; keyword = null;}
+                case "1" -> {category = null; userId = null;}
                 case "2" -> category = "LOGIN / LOGOUT";
                 case "3" -> category = "PRODUCTS";
                 case "4" -> category = "USERS";
                 case "5" -> category = "CUSTOMERS";
                 case "6" -> category = "SALES";
-                case "7" -> {
-                    int userId = readInt(sc, "Enter user ID: ");
-                    List<Audit> userLogs = logDao.getLogUserByID(userId);
-                    displayLogTable(userLogs, "AUDIT LOGS FOR USER ID: " + userId);
-
-                }
+                case "7" -> userId = readInt(sc, "Enter user ID: ");
                 case "0" -> {return;}
                 default -> System.out.println(" -> [ERROR] Invalid choice. 0 to 7 only.");
             }
@@ -123,22 +116,23 @@ public class SystemAuditorMenu implements Menu {
 
     private void displayLogTable(List<Audit> logs, String title){
         System.out.println("\n===========================================================================================================================================================");
-        System.out.println("                                                                " + title + " ");
+        System.out.println("                                                         " + title + " ");
         if(logs.isEmpty()){
             System.out.println("\n-> No Records.");
             System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------");
             return;
         }
-        System.out.println("+------+---------------------+----------------------+------------------------+--------------+--------+----------------------------------------------------+");
-        System.out.printf ("| %-4s | %-19s | %-20s | %-22s | %-12s | %-6s | %-50s |\n", "ID", "Timestamp", "User", "Action", "Table", "Rec ID", "Description");
-        System.out.println("+------+---------------------+----------------------+------------------------+--------------+--------+----------------------------------------------------+");
+        System.out.println("+------+---------------------+------+------------------+------------------------+--------------+--------+-------------------------------------------------+");
+        System.out.printf ("| %-4s | %-19s | %-4s | %-16s | %-22s | %-12s | %-6s | %-47s |\n", "ID", "Timestamp", "UID", "User", "Action", "Table", "Rec ID", "Description");
+        System.out.println("+------+---------------------+------+------------------+------------------------+--------------+--------+-------------------------------------------------+");
         for(Audit a : logs){
+            String uid = (a.user_id() == null) ? "-" : String.valueOf(a.user_id());
             String table = (a.table_affected() == null) ? "-" : a.table_affected();
             String recId = (a.record_id() == null) ? "-" : String.valueOf(a.record_id());
-            System.out.printf("| %-4d | %-19s | %-20s | %-22s | %-12s | %-6s | %-50s |\n",
-                    a.log_id(), a.log_stamp(), cut(a.username(), 20), cut(a.action(), 22), cut(table, 12), recId, cut(a.description(), 50));
+            System.out.printf("| %-4d | %-19s | %-4s | %-16s | %-22s | %-12s | %-6s | %-47s |\n",
+                    a.log_id(), a.log_stamp(), uid, cut(a.username(), 16), cut(a.action(), 22), cut(table, 12), recId, cut(a.description(), 47));
         }
-        System.out.println("+------+---------------------+----------------------+------------------------+--------------+--------+----------------------------------------------------+");
+        System.out.println("+------+---------------------+------+------------------+------------------------+--------------+--------+-------------------------------------------------+");
         System.out.println(" Total logs: " + logs.size());
     }
 
@@ -272,7 +266,7 @@ public class SystemAuditorMenu implements Menu {
         }
     }
 
-    // Cuts text that is too long so the table stays aligned
+
     private String cut(String text, int max){
         if(text == null) return "-";
         if(text.length() <= max) return text;

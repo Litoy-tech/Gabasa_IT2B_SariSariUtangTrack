@@ -11,11 +11,15 @@ public class AuditLogDao {
         int r_id = rs.getInt("record_id");
         Integer recordId = rs.wasNull() ? null : r_id;
 
+        int u_id = rs.getInt("user_id");
+        Integer userId = rs.wasNull() ? null : u_id;
+
         String user = rs.getString("username");
         if(user == null) user = "(unknown)";
 
         return new Audit(
                 rs.getInt("log_id"),
+                userId,
                 user,
                 rs.getString("action"),
                 rs.getString("table_affected"),
@@ -28,8 +32,8 @@ public class AuditLogDao {
     public List<Audit> getAllLogs(){
         List<Audit> audit_list = new ArrayList<>();
 
-        String sql = "Select a.log_id, u.username, a.action, a.table_affected, a.record_id, a.description, a.log_timestamp " +
-                "FROM audit_logs a LEFT JOIN users u On a.user_id = u.user_id ORDER BY a.log_timestamp DESC";
+        String sql = "SELECT a.log_id, a.user_id, u.username, a.action, a.table_affected, a.record_id, a.description, a.log_timestamp " +
+                "FROM audit_logs a LEFT JOIN users u On a.user_id = u.user_id ORDER BY a.log_id DESC";
 
         try(Connection conn = DatabaseConnection.getConnection();
             Statement stmt = conn.createStatement();
@@ -47,12 +51,12 @@ public class AuditLogDao {
     public List<Audit> getLogUserByID(int userID){
         List<Audit> audits_list = new ArrayList<>();
 
-        String sql = "SELECT a.log_id, u.username, a.action, " +
+        String sql = "SELECT a.log_id, a.user_id, u.username, a.action, " +
                 "a.table_affected, a.record_id, a.description, a.log_timestamp " +
                 "FROM audit_logs a " +
                 "LEFT JOIN users u ON a.user_id = u.user_id " +
                 "WHERE a.user_id = ? " +
-                "ORDER BY a.log_timestamp DESC";
+                "ORDER BY a.log_id DESC";
 
         try(Connection conn = DatabaseConnection.getConnection();
             PreparedStatement psmt = conn.prepareStatement(sql)){
