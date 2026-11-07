@@ -34,7 +34,7 @@ public class UserDao {
 
     public void defaultAdminGenerator(Connection conn) {
         String checkSql = "SELECT COUNT(*) FROM users WHERE roles ='ADMIN'";
-        String insertSql = "INSERT INTO users(fullName, username, password, roles, status) VALUES('Admin', 'admin@gmail.com', 'admin123', 'ADMIN', 'APPROVED')";
+        String insertSql = "INSERT INTO users(fullName, username, password, roles, status) VALUES('Admin', 'admin', 'admin123', 'ADMIN', 'APPROVED')";
 
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(checkSql)) {

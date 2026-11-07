@@ -255,9 +255,10 @@ public class CashierMenu implements Menu {
         }
 
         logDao.logs(cashier.user_id(), "SALE", "sales", saleId,
-                String.format("%s sale, total %.2f", type == 1 ? "Cash" : "Utang", total));
+                String.format("Processed %s sale #%d for %s - Total: P%.2f", type == 1 ? "Cash" : "Utang", saleId,
+                        customer == null ? "walk-in customer" : "Customer " + customer.customer_id(), total));
 
-        System.out.println("\n=========================== RECEIPT ===========================");
+        System.out.println("\n=============================== RECEIPT ===============================");
         System.out.printf("Sale #      : %d%n", saleId);
         System.out.printf("Payment     : %s%n", type == 1 ? "Cash" : "Utang");
         printCart("ITEMS PURCHASED", cart, products);
@@ -273,7 +274,7 @@ public class CashierMenu implements Menu {
             System.out.printf("New balance : ₱ %.2f%n", updated.balance());
             System.out.printf("Due date    : %s%n", due);
         }
-        System.out.println("===============================================================");
+        System.out.println("==============================================================================");
         return true;
     }
 

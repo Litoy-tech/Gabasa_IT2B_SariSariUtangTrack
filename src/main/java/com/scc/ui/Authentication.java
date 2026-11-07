@@ -86,7 +86,7 @@ public class Authentication {
             Menu menu;
             switch (loggedIn.roles()){
                 case "ADMIN":
-                    menu = new AdminMenu( userDao, customerDao, productDao, logDao, sc);
+                    menu = new AdminMenu( userDao, customerDao, productDao, salesDao,logDao, sc);
                     break;
                 case "CASHIER":
                     menu = new CashierMenu(userDao, productDao, customerDao, salesDao,logDao,sc);
@@ -98,9 +98,9 @@ public class Authentication {
                     System.out.println("Unknown Role!");
                     return;
             }
-            logDao.logs(loggedIn.user_id(), "LOGIN", null, null, loggedIn.username() + " logged in ");
+            logDao.logs(loggedIn.user_id(), "LOGIN", null, null, String.format("User %s (ID: %d) logged in.", loggedIn.username(), loggedIn.user_id()));
             menu.show(loggedIn);
-            logDao.logs(loggedIn.user_id(), "LOGOUT", null, null, loggedIn.username() + " logged out ");
+            logDao.logs(loggedIn.user_id(), "LOGOUT", null, null, String.format("User %s (ID: %d) logged out.", loggedIn.username(), loggedIn.user_id()));
         }else {
             logDao.logs(null, "LOGIN FAILED", null, null, "FAILED for: " + user);
         }

@@ -221,7 +221,7 @@ public class UserManagement {
 
         if(readYesNo(sc, "Approved this User?")){
             if(userDao.approvedUser(userId)){
-                logDao.logs(admin.user_id(),  "APPROVED USER", "users", userId, "APPROVED user: " + target.username());
+                logDao.logs(admin.user_id(), "APPROVED USER", "users", userId, String.format("Admin %d approved user %d (%s).", admin.user_id(), userId, target.username()));
             }
         }else{
             System.out.println(" -> Cancelled.");
@@ -265,7 +265,7 @@ public class UserManagement {
 
         if(readYesNo(sc, " Change " + target.username() + " from " + target.roles() + " to " + newRole + "?")){
             if(userDao.updateUserRoleAndStatus(userId, newRole, target.status())){
-                logDao.logs(admin.user_id(), "UPDATE USER ROLE", "users", userId, "Change role of user: " + target.username() + " to " + newRole);
+                logDao.logs(admin.user_id(), "UPDATE USER ROLE", "users", userId, String.format("Role changed to %s for user %d (%s) from %s.", newRole, userId, target.username(), target.roles()));
             }
         }else{
             System.out.println(" -> Cancelled.");

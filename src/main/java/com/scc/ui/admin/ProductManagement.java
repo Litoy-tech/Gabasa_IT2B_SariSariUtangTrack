@@ -252,8 +252,9 @@ public class ProductManagement {
 
         if(readYesNo(sc, "Change "+target_id.p_name()+" to " + updateStatus + "?")){
             if(productDao.updateStatus(target_id.product_id(), updateStatus)){
-                logDao.logs(admin.user_id(), "UPDATE PRODUCT STATUS", "product_tbl", target_id.product_id(), "Changed product: " + target_id.p_name() +
-                        " status from: " + target_id.p_status() + " to: " + updateStatus);
+                logDao.logs(admin.user_id(), "UPDATE PRODUCT STATUS", "product_tbl", target_id.product_id(),
+                        "Updated product #" + target_id.product_id() + " (" + target_id.p_name() + ") status from "
+                                + target_id.p_status() + " to " + updateStatus);
             }
         }else {
             System.out.println(" -> Cancelled.");

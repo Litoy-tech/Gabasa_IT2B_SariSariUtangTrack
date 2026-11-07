@@ -39,12 +39,12 @@ public class SystemAuditorMenu implements Menu {
 
     @Override
     public void show(User SysAuditor) {
+        while (true) {
         System.out.println("\n===============================");
         System.out.println("     SYSTEM AUDITOR MENU");
         System.out.println("===============================");
         System.out.println("Welcome, " + SysAuditor.fullName() + "!");
 
-        while (true) {
             System.out.println("\n[1] View Audit Log\n[2] View Sales\n[3] Daily Sales Report\n[4] Utang Report\n" +
                     "[5] Export Reports (PDF / CSV)\n" +
                     "[0] Logout");
@@ -174,7 +174,7 @@ public class SystemAuditorMenu implements Menu {
                 .toList();
     }
 
-    private void viewSales(){
+    public void viewSales(){
         String type = null;
         String keyword = null;
 
@@ -199,7 +199,7 @@ public class SystemAuditorMenu implements Menu {
 
     private void displaySalesTable(List<Sales> salesList, String title){
         System.out.println("\n=====================================================================================================");
-        System.out.println("                              " + title + " ");
+        System.out.println("                                           " + title + " ");
         if(salesList.isEmpty()){
             System.out.println("\n-> No Records.");
             System.out.println("-----------------------------------------------------------------------------------------------------");
@@ -224,7 +224,7 @@ public class SystemAuditorMenu implements Menu {
         System.out.printf(" Total sales: %d | Total amount: ₱ %.2f\n", salesList.size(), grandTotal);
     }
 
-    private void viewSaleDetails(){
+    public void viewSaleDetails(){
         int id = readInt(sc, "Enter Sale ID (0 to cancel): ");
         if(id == 0){
             System.out.println(" -> Operation Cancelled.");
