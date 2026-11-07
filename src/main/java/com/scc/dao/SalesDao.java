@@ -5,6 +5,7 @@ import com.scc.model.SalesItem;
 
 import java.sql.ResultSet;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SalesDao {
@@ -241,5 +242,51 @@ public class SalesDao {
             System.err.println("Database error: " + e.getMessage());
         }
         return -1;
+    }
+
+    private SalesItem mapSalesItem(ResultSet rs) throws SQLException {
+        return new SalesItem(
+                rs.getInt("sale_item_id"),
+                rs.getInt("sale_id"),
+                rs.getInt("product_id"),
+                rs.getInt("quantity"),
+                rs.getDouble("unit_price"),
+                rs.getDouble("subtotal"));
+    }
+
+    public List<Sales> getAllSales(){
+        List<Sales> salesList = new ArrayList<>();
+        String sql = "SELECT * FROM sales ORDER BY sale_id DESC";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)){
+
+            while(rs.next()){
+                salesList.add(mapSales(rs));
+            }
+        }catch (SQLException e){
+            System.err.println("Error fetching sales: " + e.getMessage());
+        }
+        return salesList;
+    }
+
+    public List<SalesItem> getSaleItems(int saleId){
+        List<SalesItem> itemList = new ArrayList<>();
+        String sql = "SELECT * FROM sale_items WHERE sale_id = ?";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setInt(1, saleId);
+            try(ResultSet rs = pstmt.executeQuery()){
+                while(rs.next()){
+                    itemList.add(mapSalesItem(rs));
+                }
+            }
+        }catch (SQLException e){
+            System.err.println("Error fetching sale items: " + e.getMessage());
+        }
+        return itemList;
     }
 }

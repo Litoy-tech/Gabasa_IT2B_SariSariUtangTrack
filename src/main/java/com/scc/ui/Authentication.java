@@ -92,7 +92,7 @@ public class Authentication {
                     menu = new CashierMenu(userDao, productDao, customerDao, salesDao,logDao,sc);
                     break;
                 case "SYS_AUDITOR":
-                    menu = new SystemAuditorMenu(userDao,logDao, sc);
+                    menu = new SystemAuditorMenu(userDao, customerDao, productDao,salesDao,logDao,sc);
                     break;
                 default:
                     System.out.println("Unknown Role!");
