@@ -57,7 +57,7 @@ public class AdminMenu implements Menu {
         }
     }
 
-    // ===================== VIEW SALES (Owner) =====================
+
 
     private Map<Integer, String> cashierNames(){
         Map<Integer, String> map = new HashMap<>();
@@ -211,7 +211,7 @@ public class AdminMenu implements Menu {
         }
     }
 
-    // ===================== BEST SALES =====================
+
 
     private void bestSales(){
         Map<Integer, Integer> qtyMap = new HashMap<>();

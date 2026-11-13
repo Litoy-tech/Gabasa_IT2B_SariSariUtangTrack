@@ -2,6 +2,7 @@ package com.scc.dao;
 
 import com.scc.model.Sales;
 import com.scc.model.SalesItem;
+import com.scc.model.UtangPayment;
 
 import java.sql.ResultSet;
 import java.sql.*;
@@ -288,6 +289,32 @@ public class SalesDao {
             System.err.println("Error fetching sale items: " + e.getMessage());
         }
         return itemList;
+    }
+
+    public List<UtangPayment> getPaymentCus(int customerID){
+        List<UtangPayment> list = new ArrayList<>();
+        String sql = "SELECT * FROM utang_payments WHERE customer_id = ? ORDER BY payment_id DESC";
+
+        try(Connection conn = DatabaseConnection.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setInt(1, customerID);
+            try(ResultSet rs = pstmt.executeQuery()){
+                while (rs.next()){
+                    list.add(new UtangPayment(
+                            rs.getInt("payment_id"),
+                            rs.getInt("customer_id"),
+                            rs.getDouble("amount"),
+                            rs.getString("payment_date"),
+                            rs.getInt("received_by")
+
+                    ));
+                }
+            }
+        }catch (SQLException e) {
+            System.err.println("Error fetching payments: " + e.getMessage());
+        }
+        return list;
     }
 
 }
