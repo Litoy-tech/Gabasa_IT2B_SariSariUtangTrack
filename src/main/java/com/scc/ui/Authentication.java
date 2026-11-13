@@ -5,6 +5,7 @@ import com.scc.model.Customer;
 import com.scc.model.User;
 import com.scc.ui.admin.AdminMenu;
 import com.scc.ui.cashier.CashierMenu;
+import com.scc.ui.customer.CustomerMenu;
 import com.scc.ui.systemAuditor.SystemAuditorMenu;
 
 import java.util.Scanner;
@@ -93,6 +94,9 @@ public class Authentication {
                     break;
                 case "SYS_AUDITOR":
                     menu = new SystemAuditorMenu(userDao, customerDao, productDao,salesDao,logDao,sc);
+                    break;
+                case "CUSTOMER":
+                    menu = new CustomerMenu(customerDao, productDao, salesDao, logDao, sc);
                     break;
                 default:
                     System.out.println("Unknown Role!");
