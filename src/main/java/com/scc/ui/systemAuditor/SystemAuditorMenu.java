@@ -12,14 +12,11 @@ import com.scc.model.Sales;
 import com.scc.model.SalesItem;
 import com.scc.model.User;
 import com.scc.ui.Menu;
-import com.scc.util.InputHelper;
 
 import static com.scc.util.InputHelper.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.time.LocalDate;
+import java.util.*;
 
 public class SystemAuditorMenu implements Menu {
     private final UserDao userDao;
@@ -55,8 +52,8 @@ public class SystemAuditorMenu implements Menu {
             switch(choice){
                 case "1" -> logHistory();
                 case "2" -> viewSales();
-                case "3" -> System.out.println("Daily Sales Report (soon)");
-                case "4" -> System.out.println("Utang Report (soon)");
+                case "3" -> dailySalesReport();
+                case "4" -> utangReport();
                 case "5" -> System.out.println("Export Reports (soon)");
                 case "0" -> {return;}
                 default -> System.out.println(" Enter 0-5.");
@@ -209,7 +206,8 @@ public class SystemAuditorMenu implements Menu {
 
         Map<Integer, String> cashiers = cashierNames();
         Map<Integer, String> customers = customerNames();
-        double grandTotal = 0;
+        double grandTotal = 0, cashTotal = 0, utangTotal = 0;
+        int cashCount = 0, utangCount = 0;
 
         System.out.println("+------+---------------------+------------------+---------+--------------------------+--------------+");
         System.out.printf ("| %-4s | %-19s | %-16s | %-7s | %-24s | %12s |\n", "ID", "Date", "Cashier", "Type", "Customer", "Total");
@@ -220,9 +218,18 @@ public class SystemAuditorMenu implements Menu {
             System.out.printf("| %-4d | %-19s | %-16s | %-7s | %-24s | %12.2f |\n",
                     s.sales_id(), s.Sales_date(), cut(cashier, 16), s.payment_type(), cut(customer, 24), s.total_amount());
             grandTotal += s.total_amount();
+            if(s.payment_type().equalsIgnoreCase("Utang")){
+                utangTotal += s.total_amount();
+                utangCount++;
+            }else {
+                cashTotal += s.total_amount();
+                cashCount++;
+            }
         }
         System.out.println("+------+---------------------+------------------+---------+--------------------------+--------------+");
         System.out.printf(" Total sales: %d | Total amount: ₱ %.2f\n", salesList.size(), grandTotal);
+        System.out.printf(" Cash : %d sale(s) | ₱ %.2f\n", cashCount, cashTotal);
+        System.out.printf(" Utang: %d sale(s) | ₱ %.2f\n", utangCount, utangTotal);
     }
 
     public void viewSaleDetails(){
@@ -266,10 +273,111 @@ public class SystemAuditorMenu implements Menu {
         }
     }
 
-
     private String cut(String text, int max){
         if(text == null) return "-";
         if(text.length() <= max) return text;
         return text.substring(0, max - 3) + "...";
+    }
+
+    // ===================== DAILY SALES REPORT =====================
+
+    private void dailySalesReport(){
+        String date = readString(sc, "\nEnter date (YYYY-MM-DD), T = today, 0 = cancel: ").trim();
+        if(date.equals("0")) return;
+        if(date.equalsIgnoreCase("T")) date = LocalDate.now().toString();
+
+        if(!date.matches("\\d{4}-\\d{2}-\\d{2}")){
+            System.out.println(" -> [ERROR] Use format YYYY-MM-DD.");
+            return;
+        }
+
+        final String day = date;
+        List<Sales> list = salesDao.getAllSales().stream()
+                .filter(s -> s.Sales_date() != null && s.Sales_date().startsWith(day))
+                .toList();
+
+        displaySalesTable(list, "DAILY SALES REPORT: " + day);
+    }
+
+    // ===================== UTANG REPORT =====================
+
+    private void utangReport(){
+        List<Customer> all = customerDao.getAllCustomer();
+        List<Customer> utangList = new ArrayList<>();
+
+        for(Customer c : all){
+            if(c.balance() > 0){
+                utangList.add(c);
+            }
+        }
+
+        if(utangList.isEmpty()){
+            System.out.println("\n -> No customers with utang.");
+            return;
+        }
+
+        utangList.sort((a, b) -> Double.compare(b.balance(), a.balance()));
+
+        System.out.println("\n===============================================================");
+        System.out.println("                         UTANG REPORT");
+        System.out.println("===============================================================");
+        System.out.printf("| %-4s | %-24s | %12s | %-10s |\n", "ID", "Name", "Balance", "Due Date");
+        System.out.println("===============================================================");
+
+        double totalOutstanding = 0;
+        for(Customer c : utangList){
+            System.out.printf("| %-4d | %-24s | %12.2f | %-10s |\n",
+                    c.customer_id(), cut(c.full_name(), 24), c.balance(), cut(c.due_date(), 10));
+            totalOutstanding += c.balance();
+        }
+
+        System.out.println("===============================================================");
+        System.out.printf("Customers with utang : %d | Total Outstanding : ₱ %.2f\n", utangList.size(), totalOutstanding);
+
+        while(true){
+            int id = readInt(sc, "\nEnter Customer ID to see details (0 to cancel): ");
+
+            if(id == 0) return;
+
+            Customer target = null;
+            for(Customer c : utangList){
+                if(c.customer_id() == id){
+                    target = c;
+                    break;
+                }
+            }
+
+            if(target == null){
+                System.out.println(" -> Customer not found in the utang list.");
+                continue;
+            }
+            utangDetails(target);
+        }
+    }
+
+    private void utangDetails(Customer c){
+        Map<Integer, String> names = productNames();
+        System.out.println("\n=====================================================================");
+        System.out.println(" UTANG DETAILS: " + c.full_name());
+        System.out.printf(" Balance: ₱ %.2f | Due Date: %s\n", c.balance(), c.due_date() == null ? "-" : c.due_date());
+        System.out.println("=====================================================================");
+        System.out.printf("| %-19s | %-20s | %-5s | %12s |\n", "Date", "Product", "Qty", "Total");
+        System.out.println("=====================================================================");
+
+        boolean found = false;
+
+        for(Sales s : salesDao.getAllSales()){
+            if(s.customer_id() != c.customer_id()) continue;
+            if(!s.payment_type().equalsIgnoreCase("Utang")) continue;
+
+            for(SalesItem it: salesDao.getSaleItems(s.sales_id())){
+                System.out.printf("| %-19s | %-20s | %-5d | %12.2f |\n", cut(s.Sales_date(), 19), cut(names.getOrDefault(it.product_id(), "Unknown"), 20),
+                        it.quantity(), it.subtotal());
+                found = true;
+            }
+        }
+
+        if(!found) System.out.println(" -> No Utang purchases found.");
+        System.out.println("=====================================================================");
     }
 }
