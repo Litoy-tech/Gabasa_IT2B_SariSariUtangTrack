@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class Main {
 
 
-    public static void main(){
+    public static void main(String[] args){
 
         DatabaseInitializer.initializer();
         Scanner sc = new Scanner(System.in);

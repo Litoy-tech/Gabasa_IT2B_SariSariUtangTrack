@@ -32,7 +32,7 @@ public class AdminMenu implements Menu {
             System.out.println("            OWNER MENU ");
             System.out.println("        Welcome, " + admin.fullName() + "!");
             System.out.println("===============================");
-            System.out.println("[1] Manage Product\n[2] Manage Customers\n[3] Manage Users\n[4] View Sales" +
+            System.out.println("[1] Manage Product\n[2] Manage Customers\n[3] Manage Users\n[4] View All Sales" +
                     "\n[5] Best Sale\n[6] Reports\n[7] Logout");
             int choice = readInt(sc, "Enter Choice: ");
 

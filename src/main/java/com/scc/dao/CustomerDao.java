@@ -95,9 +95,9 @@ public class CustomerDao {
         return customerList;
     }
 
-    public boolean updateCustomers(int customerId, String fullName, String contact, String address, double creditLimit, String agreement){
+    public boolean updateCustomers(int customerId, String fullName, String contact, String address, double creditLimit){
         String sql = "UPDATE customer_tbl SET full_name = ?, contact_number = ?, address = ?," +
-                "credit_limit = ?, agreement_on_file = ? WHERE customer_id = ?";
+                "credit_limit = ? WHERE customer_id = ?";
         String userSql = "UPDATE users SET fullName = ? WHERE user_id = (SELECT user_id FROM customer_tbl WHERE customer_id = ?)";
 
         try(Connection conn = DatabaseConnection.getConnection()){
@@ -110,8 +110,7 @@ public class CustomerDao {
                 pstmt.setString(2, contact);
                 pstmt.setString(3, address);
                 pstmt.setDouble(4, creditLimit);
-                pstmt.setString(5, agreement);
-                pstmt.setInt(6, customerId);
+                pstmt.setInt(5, customerId);
 
                 int rows = pstmt.executeUpdate();
 

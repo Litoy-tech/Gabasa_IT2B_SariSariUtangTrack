@@ -238,20 +238,10 @@ public class CustomerManagement {
             }
         }
 
-        String agreement = target.agreement_on_file();
-        while (true){
-            System.out.print("Agreement on file [ " + target.agreement_on_file() + " ] (Y/N): ");
-            String in = sc.nextLine().trim().toLowerCase();
-            if(in.isEmpty()) break;
-            if(in.equals("y") || in.equals("yes")){ agreement = "Yes"; break; }
-            if(in.equals("n") || in.equals("no")){ agreement = "No"; break; }
-            System.out.println(" -> [ERROR] Enter Y or N.");
-        }
-
         if(readYesNo(sc, "Save Changes? ")){
-            if(customerDao.updateCustomers(target.customer_id(), fullName, contact, address, creditLimit, agreement)){
+            if(customerDao.updateCustomers(target.customer_id(), fullName, contact, address, creditLimit)){
                 logDao.logs(admin.user_id(), "UPDATE CUSTOMER", "customer_tbl", target.customer_id(), "Updated customer: " + fullName +
-                        " | Contact: " + contact + " | Credit Limit: " + creditLimit + " | Agreement: " + agreement);
+                        " | Contact: " + contact + " | Credit Limit: " + creditLimit);
             }
         }else {
             System.out.println(" -> Update Cancelled.");
