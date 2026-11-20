@@ -43,7 +43,7 @@ public class InputHelper {
         while(true){
             System.out.print(prompt);
             String input = sc.nextLine().trim();
-            if(input.matches("\\d{4}")){
+            if(input.matches("\\d{4}") || input.equals("0")){
                 return input;
             }
             System.out.println(" -> [ERROR] Enter 4 digits.");

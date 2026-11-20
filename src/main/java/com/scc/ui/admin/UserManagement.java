@@ -229,7 +229,7 @@ public class UserManagement {
     }
 
     private void updateUserRole(User admin){
-        List<User> users = userDao.getAllUser();
+        List<User> users = userDao.getAllUser().stream().filter(user -> !user.roles().equalsIgnoreCase("CUSTOMER")).toList();
         displayUserTable(users, "CHANGE ROLE");
 
         if(users.isEmpty()) return;
@@ -288,7 +288,7 @@ public class UserManagement {
     }
 
     private void updateUserStatus(User admin){
-        List<User> users = userDao.getAllUser();
+        List<User> users = userDao.getAllUser().stream().filter(user -> !user.roles().equalsIgnoreCase("CUSTOMER")).toList();
         displayUserTable(users, "CHANGE STATUS");
 
         if(users.isEmpty()) return;

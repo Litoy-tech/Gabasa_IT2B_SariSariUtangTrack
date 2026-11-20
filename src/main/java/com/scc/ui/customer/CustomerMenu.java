@@ -67,16 +67,25 @@ public class CustomerMenu implements Menu{
      }
 
      private void myAccount(Customer me){
-         System.out.println("\n===============================");
+         String due = me.due_date();
+         boolean hasDue = due != null && !due.isBlank();
+
+         String dueStatus = "-";
+         if(hasDue){
+             dueStatus = java.time.LocalDate.parse(due).isBefore(java.time.LocalDate.now()) ? "OVERDUE" : "Current";
+         }
+         System.out.println("\n====================================");
          System.out.println("          MY ACCOUNT");
-         System.out.println("===============================");
+         System.out.println("====================================");
          System.out.printf("\nName            : %s", me.full_name());
          System.out.printf("\nContact Number  : %s", me.contact_number());
          System.out.printf("\nAddress         : %s", me.address());
-         System.out.printf("\nBalance         : %.2f", me.credit_limit() - me.balance());
-         System.out.printf("\nDue Date        : %s", me.due_date() == null ? "-" : me.due_date());
-         System.out.printf("\nStatus          : %s", me.status());
-         System.out.println("\n===============================");
+         System.out.printf("\nUtang Balance   : ₱ %.2f",me.balance());
+         System.out.printf("\nCredit Limit    : ₱ %.2f", me.credit_limit());
+         System.out.printf("\nAvailable Credit: ₱ %.2f", me.credit_limit() - me.balance());
+         System.out.printf("\nDue Date        : %s", hasDue ? due : "-");
+         System.out.printf("\nPayment Status  : %s", dueStatus);
+         System.out.println("\n====================================");
      }
 
      private Map<Integer, String> productNames(){
@@ -127,29 +136,29 @@ public class CustomerMenu implements Menu{
      }
 
 
-     public void viewMyPayment(Customer me){
-         List<UtangPayment> paymentList = salesDao.getPaymentCus(me.customer_id());
+    public void viewMyPayment(Customer me){
+        List<UtangPayment> paymentList = salesDao.getPaymentCus(me.customer_id());
 
-         System.out.println("\n===========================================");
-         System.out.println("             MY PAYMENTS");
-         System.out.printf("Current Balance: %.2f", me.balance());
-         System.out.println("\n===========================================");
+        System.out.println("\n===============================================");
+        System.out.println("                 MY PAYMENTS");
+        System.out.printf (" Current Balance: ₱ %.2f\n", me.balance());
+        System.out.println("===============================================");
 
-         if(paymentList.isEmpty()){
-             System.out.println("\n -> No Payment yet.");
-             return;
-         }
+        if(paymentList.isEmpty()){
+            System.out.println(" -> No payments yet.");
+            return;
+        }
 
-         System.out.printf("| %-6s | %-15s | %-12s |\n", "ID", "DATE", "AMOUNT");
-         System.out.println("===========================================");
+        System.out.printf("| %-6s | %-19s | %12s |\n", "ID", "DATE", "AMOUNT");
+        System.out.println("===============================================");
 
-         double totalPayment = 0;
-         for(UtangPayment p : paymentList){
-             System.out.printf("| %-6d | %-15s | %12.2f |\n", p.payment_id(), cut(p.payment_date(), 13), p.amount());
-             totalPayment += p.amount();
-         }
+        double totalPayment = 0;
+        for(UtangPayment p : paymentList){
+            System.out.printf("| %-6d | %-19s | %12.2f |\n", p.payment_id(), cut(p.payment_date(), 19), p.amount());
+            totalPayment += p.amount();
+        }
 
-         System.out.println("===========================================");
-         System.out.printf("\bTOTAL PAID: %.2f\n\n", totalPayment);
-     }
+        System.out.println("===============================================");
+        System.out.printf(" TOTAL PAID: ₱ %.2f\n\n", totalPayment);
+    }
 }
