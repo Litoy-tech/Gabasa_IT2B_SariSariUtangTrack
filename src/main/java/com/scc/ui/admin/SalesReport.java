@@ -244,6 +244,15 @@ public class SalesReport {
         displaySalesTable(filterSales(null, null, date), "DAILY SALES REPORT: " + date);
     }
 
+    private String dueStatus(String due){
+        if(due == null || due.isBlank()) return "-";
+        try{
+            return LocalDate.parse(due).isBefore(LocalDate.now()) ? "OVERDUE" : "Current";
+        }catch (Exception e){
+            return "-";
+        }
+    }
+
 
     private void utangReport(){
         List<Customer> all = customerDao.getAllCustomer();
@@ -262,21 +271,28 @@ public class SalesReport {
 
         utangList.sort((a, b) -> Double.compare(b.balance(), a.balance()));
 
-        System.out.println("\n===============================================================");
-        System.out.println("                         UTANG REPORT");
-        System.out.println("===============================================================");
-        System.out.printf("| %-4s | %-24s | %12s | %-10s |\n", "ID", "Name", "Balance", "Due Date");
-        System.out.println("===============================================================");
+        System.out.println("\n================================================================================");
+        System.out.println("                                  UTANG REPORT");
+        System.out.println("================================================================================");
+        System.out.println("+------+----------------------+------------+------------+------------+---------+");
+        System.out.printf("| %-4s | %-20s | %10s | %10s | %-10s | %-7s |\n",
+                "ID", "Name", "Balance", "Limit", "Due Date", "Status");
+        System.out.println("+------+----------------------+------------+------------+------------+---------+");
 
         double totalOutstanding = 0;
+        int overDue = 0;
         for(Customer c : utangList){
-            System.out.printf("| %-4d | %-24s | %12.2f | %-10s |\n",
-                    c.customer_id(), cut(c.full_name(), 24), c.balance(), cut(c.due_date(), 10));
+            String status = dueStatus(c.due_date());
+            if(status.equals("OVERDUE")) overDue++;
+
+            System.out.printf("| %-4d | %-20s | %10.2f | %10.2f | %-10s | %-7s |\n", c.customer_id(), cut(c.full_name(), 20),
+                    c.balance(), c.credit_limit(), c.due_date() == null ? "-" : c.due_date(), status);
             totalOutstanding += c.balance();
         }
 
-        System.out.println("===============================================================");
-        System.out.printf("Customers with utang : %d | Total Outstanding : ₱ %.2f\n", utangList.size(), totalOutstanding);
+        System.out.println("+------+----------------------+------------+------------+------------+---------+");
+        System.out.printf(" Customers with utang : %d | OVERDUE : %d | Total Outstanding : ₱ %.2f\n",
+                utangList.size(), overDue, totalOutstanding);
 
         while(true){
             int id = readInt(sc, "\nEnter Customer ID to see details (0 to cancel): ");

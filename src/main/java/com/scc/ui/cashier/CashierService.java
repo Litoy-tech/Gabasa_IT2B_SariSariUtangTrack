@@ -183,7 +183,7 @@ public class CashierService {
             System.out.println("\n-------------- PIN CONFIRMATION --------------");
             System.out.println("Enter [0] to Cancel");
             while (true) {
-                String pin = InputHelper.readPin(sc, "\nCustomer PIN: ");
+                String pin = InputHelper.readPinOrCancel(sc, "\nCustomer PIN: ");
                 if (pin.equals("0")) {
                     System.out.println("\n -> Sale Cancelled.");
                     return true;
@@ -198,7 +198,9 @@ public class CashierService {
 
                 Customer fresh = findCustomer(customer.customer_id());
                 if (fresh == null || !fresh.status().equalsIgnoreCase("ACTIVE")) {
-                    System.out.println("\n -> Sale Cancelled. Na-lock ang PIN sa customer.");
+                    System.out.println("\n -> Sale Cancelled. ngNa-lock a PIN sa customer.");
+                    logDao.logs(cashier.user_id(), "CUSTOMER LOCKED", "customer_tbl", customer.customer_id(), "CUSTOMER" + customer.customer_id() +
+                            "(" + customer.full_name() + ") locked after 3 wrong PIN attempts");
                     return true;
                 }
             }
