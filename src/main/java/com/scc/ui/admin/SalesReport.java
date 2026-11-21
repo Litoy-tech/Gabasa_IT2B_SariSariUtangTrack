@@ -230,15 +230,16 @@ public class SalesReport {
             System.out.println("\n===============================");
             System.out.println("            REPORTS");
             System.out.println("===============================");
-            System.out.println("[1] Daily Sales Report\n[2] Utang Report\n[3] Payments\n[0] Back");
+            System.out.println("[1] Daily Sales Report\n[2] Utang Report\n[3] Payments\n[4] Sales Summary\n[0] Back");
             String choice = readString(sc, "Enter Choice: ");
 
             switch (choice){
                 case "1" -> dailySalesReport(admin);
                 case "2" -> utangReport(admin);
                 case "3" -> viewPayments();
+                case "4" -> salesSummary();
                 case "0" -> {return;}
-                default -> System.out.println(" -> [ERROR] Enter 0-3.");
+                default -> System.out.println(" -> [ERROR] Enter 0-4.");
             }
         }
     }
@@ -488,6 +489,80 @@ public class SalesReport {
         System.out.println("=========================================================================================");
 
         System.out.print("\nPress ENTER to continue...");
+        sc.nextLine();
+    }
+
+    public void salesSummary(){
+        List<Sales> all = salesDao.getAllSales();
+
+        if(all.isEmpty()){
+            System.out.println("\n -> No Sales yet..");
+            return;
+        }
+
+        double total = 0, utangTotal = 0, cashTotal = 0;
+        double highest = Double.MIN_VALUE, lowest = Double.MAX_VALUE;
+        String first = null, latest = null;
+
+        for(Sales s : all){
+            double amt = s.total_amount();
+            total += amt;
+            if(amt > highest) highest = amt;
+            if(amt < lowest) lowest = amt;
+
+            if("Utang".equalsIgnoreCase(s.payment_type())) utangTotal += amt;
+            else cashTotal += amt;
+
+            if(s.Sales_date() != null && s.Sales_date().length() >= 10){
+                String d = s.Sales_date().substring(0, 10);
+                if(first == null || d.compareTo(first) < 0) first = d;
+                if(latest == null || d.compareTo(latest) > 0) latest = d;
+            }
+        }
+
+        double paid = 0;
+        for(Customer c : customerDao.getAllCustomer()){
+            for(UtangPayment p : salesDao.getPaymentCus(c.customer_id())){
+                paid += p.amount();
+            }
+        }
+
+        double average = total / all.size();
+        double cashPct = (total == 0) ? 0 : (cashTotal / total) * 100;
+        double utangPct = (total == 0) ? 0 : (utangTotal / total) * 100;
+        double outstanding = utangTotal - paid;
+        double collectionRate = (utangTotal == 0) ? 0 : (paid / utangTotal) * 100;
+
+        System.out.println("\n================================================================");
+        System.out.println("                     OVERALL SALES SUMMARY");
+        System.out.println("================================================================");
+
+        System.out.println("\n  SALES PERFORMANCE");
+        System.out.println("  --------------------------------------------------------------");
+        System.out.printf ("  Total Transactions          : %d%n", all.size());
+        System.out.printf ("  Average Sale per Transaction: ₱ %,.2f%n", average);
+        System.out.printf ("  Highest Sale                : ₱ %,.2f%n", highest);
+        System.out.printf ("  Lowest Sale                 : ₱ %,.2f%n", lowest);
+
+        System.out.println("\n  PAYMENT DISTRIBUTION");
+        System.out.println("  --------------------------------------------------------------");
+        System.out.printf ("  Cash Sales Percentage       : %.2f%%%n", cashPct);
+        System.out.printf ("  Utang Sales Percentage      : %.2f%%%n", utangPct);
+
+        System.out.println("\n  COLLECTION PERFORMANCE");
+        System.out.println("  --------------------------------------------------------------");
+        System.out.printf ("  Total Utang Sales           : ₱ %,.2f%n", utangTotal);
+        System.out.printf ("  Total Payments Collected    : ₱ %,.2f%n", paid);
+        System.out.printf ("  Remaining Outstanding       : ₱ %,.2f%n", outstanding);
+        System.out.printf ("\n  COLLECTION RATE             : %.2f%%%n", collectionRate);
+
+        System.out.println("\n  SALES PERIOD");
+        System.out.println("  --------------------------------------------------------------");
+        System.out.println("  First Sale Recorded         : " + (first == null ? "-" : first));
+        System.out.println("  Latest Sale Recorded        : " + (latest == null ? "-" : latest));
+        System.out.println("\n================================================================");
+
+        System.out.println("Press Enter");
         sc.nextLine();
     }
 }

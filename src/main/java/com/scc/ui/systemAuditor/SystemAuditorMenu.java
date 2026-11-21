@@ -43,7 +43,7 @@ public class SystemAuditorMenu implements Menu {
                 case "5" -> service.viewPayments();
                 case "6" -> service.bestSales();
                 case "0" -> {return;}
-                default -> System.out.println(" Enter 0-5.");
+                default -> System.out.println(" Enter 0-6.");
             }
         }
     }

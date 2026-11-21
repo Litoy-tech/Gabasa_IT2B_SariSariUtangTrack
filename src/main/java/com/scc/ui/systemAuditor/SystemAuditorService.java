@@ -574,6 +574,7 @@ public class SystemAuditorService {
         pause();
     }
 
+
     private void pause(){
         System.out.print("\nPress ENTER to continue...");
         sc.nextLine();
