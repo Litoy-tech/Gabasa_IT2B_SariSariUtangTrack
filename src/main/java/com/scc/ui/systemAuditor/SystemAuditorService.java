@@ -2,13 +2,12 @@ package com.scc.ui.systemAuditor;
 
 import com.scc.dao.*;
 import com.scc.model.*;
+import com.scc.util.ReportExporter;
 
 import java.time.LocalDate;
 import java.util.*;
 
-import static com.scc.util.InputHelper.readInt;
-import static com.scc.util.InputHelper.readString;
-
+import static com.scc.util.InputHelper.*;
 
 public class SystemAuditorService {
     private final UserDao userDao;
@@ -16,6 +15,7 @@ public class SystemAuditorService {
     private final ProductDao productDao;
     private final SalesDao salesDao;
     private final AuditLogDao logDao;
+    private final ReportExporter exporter;
     private final Scanner sc;
 
     public SystemAuditorService(UserDao userDao, CustomerDao customerDao, ProductDao productDao,
@@ -25,6 +25,7 @@ public class SystemAuditorService {
         this.productDao = productDao;
         this.salesDao = salesDao;
         this.logDao = logDao;
+        this.exporter = new ReportExporter(userDao, customerDao);
         this.sc = sc;
     }
 
@@ -271,6 +272,13 @@ public class SystemAuditorService {
                 .toList();
 
         displaySalesTable(list, "DAILY SALES REPORT: " + day);
+
+        if(!list.isEmpty()){
+            String ans = readString(sc, "\nExport to CSV? (Y/N): ").trim();
+            if(ans.equalsIgnoreCase("Y")){
+                exporter.exportDailySales(list, day);
+            }
+        }
     }
 
     // ===================== UTANG REPORT =====================
@@ -325,6 +333,10 @@ public class SystemAuditorService {
         System.out.printf(" Customers with utang : %d | OVERDUE : %d | Total Outstanding : ₱ %.2f\n",
                 utangList.size(), overDue, totalOutstanding);
 
+        String ans = readString(sc, "\nExport to CSV? (Y/N): ").trim();
+        if(ans.equalsIgnoreCase("y")){
+            exporter.exportUtang(utangList);
+        }
         while(true){
             int id = readInt(sc, "\nEnter Customer ID to see details (0 to cancel): ");
 
