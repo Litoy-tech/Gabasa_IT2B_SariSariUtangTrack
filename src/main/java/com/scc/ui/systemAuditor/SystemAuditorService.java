@@ -263,17 +263,96 @@ public class SystemAuditorService {
         if(date.equals("0")) return;
         if(date.equalsIgnoreCase("T")) date = LocalDate.now().toString();
 
-        if(!date.matches("\\d{4}-\\d{2}-\\d{2}")){
-            System.out.println(" -> [ERROR] Use format YYYY-MM-DD.");
+        LocalDate selectedDate;
+        try{
+            selectedDate = LocalDate.parse(date);
+        } catch (Exception e) {
+            System.out.println(" -> [ERROR] Invalid date. Use YYYY-MM-DD.");
             return;
         }
 
-        final String day = date;
+        final String day = selectedDate.toString();
         List<Sales> list = salesDao.getAllSales().stream()
                 .filter(s -> s.Sales_date() != null && s.Sales_date().startsWith(day))
                 .toList();
 
-        displaySalesTable(list, "DAILY SALES REPORT: " + day);
+        // ----- DAILY SALES SUMMARY -----
+        double totalSales = 0.0;
+        double cashTotal = 0.0;
+        double utangTotal = 0.0;
+        int cashCount = 0;
+        int utangCount = 0;
+
+        for(Sales s : list){
+            totalSales += s.total_amount();
+
+            if("Utang".equalsIgnoreCase(s.payment_type())){
+                utangTotal += s.total_amount();
+                utangCount++;
+            } else {
+                cashTotal += s.total_amount();
+                cashCount++;
+            }
+        }
+
+        System.out.println("\n====================================================================");
+        System.out.println("                    DAILY SALES REPORT: " + day);
+        System.out.println("====================================================================");
+        System.out.println("Number of sales     : " + list.size());
+        System.out.printf ("Total sales amount : ₱ %.2f%n", totalSales);
+        System.out.printf ("Cash sales         : %d sale(s) | ₱ %.2f%n", cashCount, cashTotal);
+        System.out.printf ("Utang sales        : %d sale(s) | ₱ %.2f%n", utangCount, utangTotal);
+        System.out.println("--------------------------------------------------------------------");
+
+        // ----- BEST-SELLING PRODUCTS FOR SELECTED DATE -----
+        Map<Integer, Integer> quantityMap = new HashMap<>();
+        Map<Integer, Double> revenueMap = new HashMap<>();
+
+        for(Sales s : list){
+            for(SalesItem item : salesDao.getSaleItems(s.sales_id())){
+                quantityMap.merge(item.product_id(), item.quantity(), Integer::sum);
+                revenueMap.merge(item.product_id(), item.subtotal(), Double::sum);
+            }
+        }
+
+        Map<Integer, String> products = productNames();
+
+        List<Integer> rankedProductIds = new ArrayList<>(quantityMap.keySet());
+        rankedProductIds.sort((id1, id2) -> {
+            int quantityCompare = Integer.compare(
+                    quantityMap.getOrDefault(id2, 0),
+                    quantityMap.getOrDefault(id1, 0)
+            );
+            if(quantityCompare != 0) return quantityCompare;
+
+            return Double.compare(
+                    revenueMap.getOrDefault(id2, 0.0),
+                    revenueMap.getOrDefault(id1, 0.0)
+            );
+        });
+
+        System.out.println("\nBEST-SELLING PRODUCTS");
+        System.out.println("--------------------------------------------------------------------");
+        if(rankedProductIds.isEmpty()){
+            System.out.println(" -> No products sold on this date.");
+        } else {
+            System.out.printf("| %-4s | %-30s | %10s | %12s |%n", "Rank", "Product", "Units Sold", "Revenue");
+            System.out.println("--------------------------------------------------------------------");
+
+            int rank = 1;
+            for(Integer productId : rankedProductIds){
+                String productName = products.getOrDefault(productId, "Product #" + productId);
+                int unitsSold = quantityMap.getOrDefault(productId, 0);
+                double revenue = revenueMap.getOrDefault(productId, 0.0);
+
+                System.out.printf("| %-4d | %-30s | %10d | ₱ %10.2f |%n",
+                        rank++, cut(productName, 30), unitsSold, revenue);
+            }
+        }
+        System.out.println("====================================================================");
+
+        // ----- SALES LIST -----
+        displaySalesTable(list, "SALES TRANSACTIONS: " + day);
 
         if(!list.isEmpty()){
             String ans = readString(sc, "\nExport to CSV? (Y/N): ").trim();
@@ -412,6 +491,49 @@ public class SystemAuditorService {
         if(payments.isEmpty()) System.out.println(" -> No payments yet.");
         else System.out.printf(" Payments made: %d | Total paid: ₱ %.2f\n", payments.size(), totalPaid);
         System.out.println("=====================================================================");
+    }
+
+    // ===================== BEST SALES PRODUCTS =====================
+
+    public void bestSales(){
+        Map<Integer, Integer> qtyMap = new HashMap<>();
+        Map<Integer, Double> revMap = new HashMap<>();
+        for(Sales s : salesDao.getAllSales()){
+            for(SalesItem it : salesDao.getSaleItems(s.sales_id())){
+                qtyMap.merge(it.product_id(), it.quantity(), Integer::sum);
+                revMap.merge(it.product_id(), it.subtotal(), Double::sum);
+            }
+        }
+
+        if(qtyMap.isEmpty()){
+            System.out.println("\n -> No Sales yet..");
+            return;
+        }
+
+        List<Map.Entry<Integer, Integer>> ranked = new ArrayList<>(qtyMap.entrySet());
+        ranked.sort((a, b) -> b.getValue() - a.getValue());
+
+        int totalUnitsSold = qtyMap.values().stream().mapToInt(Integer::intValue).sum();
+        Map<Integer, String> names = productNames();
+
+        System.out.println("\n===================================================================");
+        System.out.println("                    BEST SALES PRODUCTS");
+        System.out.println("              Ranking based on quantity sold (All-Time)");
+        System.out.println("===================================================================");
+        System.out.printf("| %-5s | %-30s | %-8s | %-11s |\n", "Rank", "Product", "Qty Sold", "Total Sales");
+        System.out.println("-------------------------------------------------------------------");
+        for(int i = 0; i < Math.min(5, ranked.size()); i++){
+            int p_id = ranked.get(i).getKey();
+            int qty = ranked.get(i).getValue();
+            double rev = revMap.get(p_id);
+            String name = names.getOrDefault(p_id, "Unknown");
+            System.out.printf("| %-5d | %-30s | %8d | ₱%10.2f |\n", i + 1, cut(name, 30), qty, rev);
+        }
+        System.out.println("-------------------------------------------------------------------");
+        System.out.printf("Total Units Sold: %,d units%n", totalUnitsSold);
+        System.out.println("===================================================================");
+
+        pause();
     }
 
     // ===================== VIEW PAYMENTS =====================

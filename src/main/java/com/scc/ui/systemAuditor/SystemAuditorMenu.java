@@ -31,7 +31,7 @@ public class SystemAuditorMenu implements Menu {
             System.out.println("Welcome, " + SysAuditor.fullName() + "!");
 
             System.out.println("\n[1] View Audit Log\n[2] View Sales\n[3] Daily Sales Report\n[4] Utang Report\n" +
-                    "[5] View Payments\n" +
+                    "[5] View Payments\n[6] Best Sale\n" +
                     "[0] Logout");
             String choice = readString(sc, "Enter Choice: ");
 
@@ -41,6 +41,7 @@ public class SystemAuditorMenu implements Menu {
                 case "3" -> service.dailySalesReport(SysAuditor);
                 case "4" -> service.utangReport(SysAuditor);
                 case "5" -> service.viewPayments();
+                case "6" -> service.bestSales();
                 case "0" -> {return;}
                 default -> System.out.println(" Enter 0-5.");
             }
