@@ -38,8 +38,8 @@ public class SystemAuditorMenu implements Menu {
             switch(choice){
                 case "1" -> service.logHistory();
                 case "2" -> service.viewSales();
-                case "3" -> service.dailySalesReport();
-                case "4" -> service.utangReport();
+                case "3" -> service.dailySalesReport(SysAuditor);
+                case "4" -> service.utangReport(SysAuditor);
                 case "5" -> service.viewPayments();
                 case "0" -> {return;}
                 default -> System.out.println(" Enter 0-5.");

@@ -58,7 +58,7 @@ public class DatabaseInitializer {
                 // 7. audit_logs
                 "CREATE TABLE IF NOT EXISTS audit_logs (" +
                         "log_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        "user_id INTEGER REFERENCES users (user_id) ON DELETE CASCADE, " +
+                        "user_id INTEGER REFERENCES users (user_id)," +
                         "action TEXT NOT NULL, table_affected TEXT, record_id INTEGER, " +
                         "description TEXT NOT NULL, " +
                         "log_timestamp TEXT NOT NULL DEFAULT (datetime('now', 'localtime')))"

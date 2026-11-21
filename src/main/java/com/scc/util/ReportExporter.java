@@ -30,7 +30,7 @@ public class ReportExporter {
         }
     }
 
-    public void exportDailySales(List<Sales> list, String date){
+    public boolean exportDailySales(List<Sales> list, String date){
         Map<Integer, String> cashiers = new HashMap<>();
         for(User u : userDao.getAllUser()) cashiers.put(u.user_id(), u.username());
 
@@ -49,10 +49,10 @@ public class ReportExporter {
                     String.format("%.2f", s.total_amount())
             });
         }
-            save("exports/daily_sales_"+ date + ".csv", rows);
+        return save("exports/daily_sales_"+ date + ".csv", rows);
     }
 
-    public void exportUtang(List<Customer> utangList){
+    public boolean exportUtang(List<Customer> utangList){
         List<String[]> rows = new ArrayList<>();
         rows.add(new String[]{"customer_id", "name", "balance", "credit_limit", "due_date", "status"});
         for(Customer c : utangList){
@@ -66,15 +66,17 @@ public class ReportExporter {
             });
         }
 
-        save("exports/utang_report_" + LocalDate.now() + ".csv", rows);
+        return save("exports/utang_report_" + LocalDate.now() + ".csv", rows);
     }
 
-    private void save(String path, List<String[]> rows){
+    private boolean save(String path, List<String[]> rows){
         try{
             new CsvExporter(path).writeline(rows);
             System.out.println("\n -> Saved to "+ path);
+            return true;
         }catch (Exception e){
             System.out.println("\n -> [ERROR] Export failed: "+ e.getMessage());
+            return false;
         }
     }
 }

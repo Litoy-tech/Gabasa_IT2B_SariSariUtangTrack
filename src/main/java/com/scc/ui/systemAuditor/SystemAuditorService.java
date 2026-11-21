@@ -7,7 +7,9 @@ import com.scc.util.ReportExporter;
 import java.time.LocalDate;
 import java.util.*;
 
-import static com.scc.util.InputHelper.*;
+import static com.scc.util.InputHelper.readInt;
+import static com.scc.util.InputHelper.readString;
+
 
 public class SystemAuditorService {
     private final UserDao userDao;
@@ -256,7 +258,7 @@ public class SystemAuditorService {
 
     // ===================== DAILY SALES REPORT =====================
 
-    public void dailySalesReport(){
+    public void dailySalesReport(User user){
         String date = readString(sc, "\nEnter date (YYYY-MM-DD), T = today, 0 = cancel: ").trim();
         if(date.equals("0")) return;
         if(date.equalsIgnoreCase("T")) date = LocalDate.now().toString();
@@ -276,7 +278,10 @@ public class SystemAuditorService {
         if(!list.isEmpty()){
             String ans = readString(sc, "\nExport to CSV? (Y/N): ").trim();
             if(ans.equalsIgnoreCase("Y")){
-                exporter.exportDailySales(list, day);
+                if(exporter.exportDailySales(list, day)){
+                    logDao.logs(user.user_id(), "EXPORT REPORT", null, null,
+                            "Exported Daily Sales Report (" + day + ") to CSV");
+                }
             }
         }
     }
@@ -293,7 +298,7 @@ public class SystemAuditorService {
     }
 
 
-    public void utangReport(){
+    public void utangReport(User user){
         List<Customer> all = customerDao.getAllCustomer();
         List<Customer> utangList = new ArrayList<>();
 
@@ -334,9 +339,13 @@ public class SystemAuditorService {
                 utangList.size(), overDue, totalOutstanding);
 
         String ans = readString(sc, "\nExport to CSV? (Y/N): ").trim();
-        if(ans.equalsIgnoreCase("y")){
-            exporter.exportUtang(utangList);
+        if(ans.equalsIgnoreCase("Y")){
+            if(exporter.exportUtang(utangList)){
+                logDao.logs(user.user_id(), "EXPORT REPORT", null, null,
+                        "Exported Utang Report to CSV");
+            }
         }
+
         while(true){
             int id = readInt(sc, "\nEnter Customer ID to see details (0 to cancel): ");
 

@@ -42,7 +42,7 @@ public class AdminMenu implements Menu {
                 case 3 -> new UserManagement(userdao, logDao,sc).show(admin);
                 case 4 -> new SalesReport(userdao, customerDao, productDao, salesDao, sc).viewSales();
                 case 5 -> new SalesReport(userdao, customerDao, productDao, salesDao, sc).bestSales();
-                case 6 -> new SalesReport(userdao, customerDao, productDao, salesDao, sc).reportMenu();
+                case 6 -> new SalesReport(userdao, customerDao, productDao, salesDao, sc).reportMenu(admin);
                 case 7 ->{
                     System.out.println("\nLogging out..."); return;
                 }

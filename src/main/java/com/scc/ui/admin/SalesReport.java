@@ -1,9 +1,6 @@
 package com.scc.ui.admin;
 
-import com.scc.dao.CustomerDao;
-import com.scc.dao.ProductDao;
-import com.scc.dao.SalesDao;
-import com.scc.dao.UserDao;
+import com.scc.dao.*;
 import com.scc.model.*;
 import com.scc.util.ReportExporter;
 
@@ -20,6 +17,8 @@ public class SalesReport {
     private final SalesDao salesDao;
     private final ReportExporter exporter;
     private final Scanner sc;
+
+    private final AuditLogDao logDao = new AuditLogDao();
 
     public SalesReport(UserDao userDao, CustomerDao customerDao, ProductDao productDao, SalesDao salesDao, Scanner sc){
         this.userDao = userDao;
@@ -226,7 +225,7 @@ public class SalesReport {
         System.out.println("===================================================================");
     }
 
-    public void reportMenu(){
+    public void reportMenu(User admin){
         while (true){
             System.out.println("\n===============================");
             System.out.println("            REPORTS");
@@ -235,15 +234,15 @@ public class SalesReport {
             String choice = readString(sc, "Enter Choice: ");
 
             switch (choice){
-                case "1" -> dailySalesReport();
-                case "2" -> utangReport();
+                case "1" -> dailySalesReport(admin);
+                case "2" -> utangReport(admin);
                 case "3" -> viewPayments();
                 case "0" -> {return;}
                 default -> System.out.println(" -> [ERROR] Enter 0-3.");
             }
         }
     }
-    private void dailySalesReport(){
+    private void dailySalesReport(User admin){
         String date = readString(sc, "\nEnter date (YYYY-MM-DD), T = today, 0 = cancel: ").trim();
         if(date.equals("0")) return;
         if(date.equalsIgnoreCase("T")) date = LocalDate.now().toString();
@@ -321,7 +320,10 @@ public class SalesReport {
         if(!day.isEmpty()){
             String ans = readString(sc, "\nExport to CSV? (Y/N): ").trim();
             if(ans.equalsIgnoreCase("Y")){
-                exporter.exportDailySales(day, date);
+                if(exporter.exportDailySales(day, date)){
+                    logDao.logs(admin.user_id(), "EXPORT REPORT", null, null,
+                            "Exported Daily Sales Report (" + date + ") to CSV");
+                }
             }
         }
     }
@@ -336,7 +338,7 @@ public class SalesReport {
     }
 
 
-    private void utangReport(){
+    private void utangReport(User admin){
         List<Customer> all = customerDao.getAllCustomer();
         List<Customer> utangList = new ArrayList<>();
 
@@ -379,7 +381,9 @@ public class SalesReport {
 
         String ans = readString(sc, "\nExport to CSV? (Y/N): ").trim();
         if(ans.equalsIgnoreCase("Y")){
-            exporter.exportUtang(utangList);
+            if(exporter.exportUtang(utangList)){
+                logDao.logs(admin.user_id(), "EXPORT REPORT", null, null, "Exported Utang Report to CSV");
+            }
         }
         while(true){
             int id = readInt(sc, "\nEnter Customer ID to see details (0 to cancel): ");
