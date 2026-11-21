@@ -32,7 +32,7 @@ public class CsvExporter {
 
     private String escape(String value){
         if(value == null) return "";
-        if(value.contains(",") || value.contains("\"") || value.contains("\n")){
+        if(value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")){
             value = value.replace("\"", "\"\"");
             return "\"" + value + "\"";
         }
