@@ -7,6 +7,7 @@ import com.scc.ui.Menu;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,19 +48,18 @@ public class CustomerMenu implements Menu{
             System.out.println("===============================");
             System.out.println("Welcome, " + customer.fullName() + "!");
 
-            System.out.println("\n[1] My Account\n[2] My Utang Purchases\n[3] My Payments\n[4] Notification" + notifLabel + "\n[0] Logout");
+            System.out.println("\n[1] My Account\n[2] View My Record\n[3] Notification" + notifLabel + "\n[0] Logout");
             String choice = readString(sc, "Enter Choice: ");
 
             switch(choice){
                 case "1" -> myAccount(me);
-                case "2" -> myUtang(me);
-                case "3" -> viewMyPayment(me);
-                case "4" -> viewNotifications(notes);
+                case "2" -> viewMyRecord(me);
+                case "3" -> viewNotifications(notes);
                 case "0" -> {
                     System.out.println("\nLogging out...");
                     return;
                 }
-                default -> System.out.println(" -> [ERROR] Enter 0-4.");
+                default -> System.out.println(" -> [ERROR] Enter 0-3.");
             }
         }
     }
@@ -106,7 +106,7 @@ public class CustomerMenu implements Menu{
             }
         }
 
-        // 2. Utang taken today (history of the day)
+        // 2. Utang taken today
         Map<Integer, String> names = productNames();
         for(Sales s : salesDao.getAllSales()){
             if(s.customer_id() != me.customer_id()) continue;
@@ -123,6 +123,20 @@ public class CustomerMenu implements Menu{
             }
             d.add(String.format("Total         : ₱ %.2f", s.total_amount()));
             list.add(new Note(s.Sales_date(), "UTANG", String.format("You took utang: ₱ %.2f", s.total_amount()), d));
+        }
+
+        // 3. Payments made today
+        for(UtangPayment p : salesDao.getPaymentCus(me.customer_id())){
+            if(p.payment_date() == null || !p.payment_date().startsWith(today.toString())) continue;
+
+            String dueText = (due == null || due.isBlank() || me.balance() <= 0) ? "-" : due;
+            List<String> d = new ArrayList<>();
+            d.add("Payment #     : " + p.payment_id());
+            d.add("Date          : " + p.payment_date());
+            d.add(String.format("Amount Paid   : ₱ %.2f", p.amount()));
+            d.add(String.format("New Balance   : ₱ %.2f", me.balance()));
+            d.add("Due Date      : " + dueText);
+            list.add(new Note(p.payment_date(), "PAYMENT", String.format("You paid: ₱ %.2f", p.amount()), d));
         }
         return list;
     }
@@ -199,65 +213,76 @@ public class CustomerMenu implements Menu{
         return text.substring(0, max - 3 ) + "...";
     }
 
-    private void myUtang(Customer me){
+    // ===================== VIEW MY RECORD =====================
+
+    private record Rec(String date, String type, String detail, double amount){}
+
+    private void viewMyRecord(Customer me){
         Map<Integer, String> names = productNames();
+        List<Rec> records = new ArrayList<>();
 
-        System.out.println("\n=====================================================================");
-        System.out.println("                       MY UTANG PURCHASES");
-        System.out.printf(" Balance: ₱ %.2f\n", me.balance());
-        System.out.println("\n=====================================================================");
-        System.out.printf("| %-19s | %-20s | %-5s | %12s |\n", "Date", "Product", "Qty", "Total");
-        System.out.println("=====================================================================");
-
-        boolean found = false;
-        double totalUtang = 0;
-
-        for(Sales s: salesDao.getAllSales()){
+        for(Sales s : salesDao.getAllSales()){
             if(s.customer_id() != me.customer_id()) continue;
             if(!s.payment_type().equalsIgnoreCase("Utang")) continue;
 
             for(SalesItem it : salesDao.getSaleItems(s.sales_id())){
-                System.out.printf("| %-19s | %-20s | %5d | %12.2f |\n",
-                        cut(s.Sales_date(), 19), cut(names.getOrDefault(it.product_id(), "Uknown"), 20),
-                        it.quantity(), it.subtotal());
-                found = true;
-                totalUtang += it.subtotal();
+                String detail = cut(names.getOrDefault(it.product_id(), "Unknown"), 22) + " x" + it.quantity();
+                records.add(new Rec(s.Sales_date() == null ? "-" : s.Sales_date(), "UTANG", detail, it.subtotal()));
             }
         }
 
-        if(!found){
-            System.out.println(" -> No utang purchases yet.");
-        }
-        System.out.println("=====================================================================");
-        if(found){
-            System.out.printf(" Total Utang Purchases: ₱ %.2f\n", totalUtang);
-        }
-    }
-
-
-    public void viewMyPayment(Customer me){
-        List<UtangPayment> paymentList = salesDao.getPaymentCus(me.customer_id());
-
-        System.out.println("\n===============================================");
-        System.out.println("                 MY PAYMENTS");
-        System.out.printf (" Current Balance: ₱ %.2f\n", me.balance());
-        System.out.println("===============================================");
-
-        if(paymentList.isEmpty()){
-            System.out.println(" -> No payments yet.");
-            return;
+        for(UtangPayment p : salesDao.getPaymentCus(me.customer_id())){
+            records.add(new Rec(p.payment_date() == null ? "-" : p.payment_date(), "PAYMENT", "-", p.amount()));
         }
 
-        System.out.printf("| %-6s | %-19s | %12s |\n", "ID", "DATE", "AMOUNT");
-        System.out.println("===============================================");
+        records.sort(Comparator.comparing(Rec::date).reversed());
 
-        double totalPayment = 0;
-        for(UtangPayment p : paymentList){
-            System.out.printf("| %-6d | %-19s | %12.2f |\n", p.payment_id(), cut(p.payment_date(), 19), p.amount());
-            totalPayment += p.amount();
+        String filter = null;
+
+        while(true){
+            List<Rec> shown = new ArrayList<>();
+            double totalUtang = 0, totalPaid = 0;
+            for(Rec r : records){
+                if(filter != null && !r.type().equals(filter)) continue;
+                shown.add(r);
+                if(r.type().equals("UTANG")) totalUtang += r.amount();
+                else totalPaid += r.amount();
+            }
+
+            String title = (filter == null) ? "ALL RECORDS" : filter + " RECORDS";
+
+            System.out.println("\n==============================================================================");
+            System.out.println("                          MY RECORD - " + title);
+            System.out.printf (" Current Balance: ₱ %.2f\n", me.balance());
+            System.out.println("==============================================================================");
+
+            if(shown.isEmpty()){
+                System.out.println(" -> No records.");
+            }else {
+                System.out.printf("| %-19s | %-7s | %-27s | %12s |\n", "Date", "Type", "Product / Qty", "Amount");
+                System.out.println("==============================================================================");
+                for(Rec r : shown){
+                    System.out.printf("| %-19s | %-7s | %-27s | %12.2f |\n",
+                            cut(r.date(), 19), r.type(), cut(r.detail(), 27), r.amount());
+                }
+                System.out.println("==============================================================================");
+                if(filter == null){
+                    System.out.printf(" Total Utang: ₱ %.2f | Total Paid: ₱ %.2f\n", totalUtang, totalPaid);
+                }else if(filter.equals("UTANG")){
+                    System.out.printf(" Total Utang: ₱ %.2f\n", totalUtang);
+                }else {
+                    System.out.printf(" Total Paid: ₱ %.2f\n", totalPaid);
+                }
+            }
+
+            String choice = readString(sc, "\nFilter ([1] ALL | [2] UTANG | [3] PAYMENT | [0] Back): ").trim();
+            switch(choice){
+                case "1" -> filter = null;
+                case "2" -> filter = "UTANG";
+                case "3" -> filter = "PAYMENT";
+                case "0" -> { return; }
+                default -> System.out.println(" -> [ERROR] Enter 0-3.");
+            }
         }
-
-        System.out.println("===============================================");
-        System.out.printf(" TOTAL PAID: ₱ %.2f\n\n", totalPayment);
     }
 }

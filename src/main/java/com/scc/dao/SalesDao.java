@@ -9,12 +9,23 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.time.LocalDate;
+
 public class SalesDao {
 
     private static class SalesException extends Exception {
         SalesException(String message){
             super(message);
         }
+    }
+
+    public static final double PARTIAL_THRESHOLD = 0.60;
+    public static final int EXTEND_DAYS = 30;
+
+    public static boolean isPartialQualified(double balance, double amount) {
+        double bal = Math.round(balance * 100.0) / 100.0;
+        double amt = Math.round(amount * 100.0) / 100.0;
+        return amt < bal && amt >= Math.round(bal * PARTIAL_THRESHOLD * 100.0) / 100.0;
     }
 
     private double round2(double v){
@@ -46,7 +57,7 @@ public class SalesDao {
         String insertItem = "INSERT INTO sale_items(sale_id, product_id, quantity, unit_price, subtotal) VALUES(?, ?, ?, ?, ?)";
         String getProduct = "SELECT p_name, p_price, stock_qty, p_status FROM product_tbl WHERE product_id = ?";
         String deduct = "UPDATE product_tbl SET stock_qty = stock_qty - ? WHERE product_id = ? AND stock_qty >= ?";
-        String getCust = "SELECT credit_limit, balance, status FROM customer_tbl WHERE customer_id = ?";
+        String getCust = "SELECT credit_limit, balance, status, due_date FROM customer_tbl WHERE customer_id = ?";
         String addUtang = "UPDATE customer_tbl SET balance = balance + ?, " +
                 "due_date = CASE WHEN ROUND(balance, 2) = 0 THEN date('now', 'localtime', '+30 days') ELSE due_date END WHERE customer_id = ?";
 
@@ -103,7 +114,13 @@ public class SalesDao {
                             if(!"ACTIVE".equalsIgnoreCase(rs.getString("status"))){
                                 throw new SalesException("Customer is not ACTIVE.");
                             }
-                            double available = rs.getDouble("credit_limit") - rs.getDouble("balance");
+                            double curBalance = rs.getDouble("balance");
+                            String curDue = rs.getString("due_date");
+                            if(curBalance > 0 && curDue != null && !curDue.isBlank()
+                                    && LocalDate.parse(curDue).isBefore(LocalDate.now())){
+                                throw new SalesException("Customer is OVERDUE (due " + curDue + "). Payment required first.");
+                            }
+                            double available = rs.getDouble("credit_limit") - curBalance;
                             if(total > available){
                                 throw new SalesException(String.format("Credit limit exceeded. Available credit: ₱%.2f", available));
                             }
@@ -183,11 +200,9 @@ public class SalesDao {
     }
 
     public int recordUtangPayment(int customerId, double amount, int receivedBy) {
-        String getCust = "SELECT balance FROM customer_tbl WHERE customer_id = ?";
+        String getCust = "SELECT balance, due_date FROM customer_tbl WHERE customer_id = ?";
         String insertPay = "INSERT INTO utang_payments(customer_id, amount, received_by) VALUES(?, ?, ?)";
-        String deductBal = "UPDATE customer_tbl SET balance = balance - ?, " +
-                "due_date = CASE WHEN ROUND(balance - ?, 2) <= 0 THEN NULL ELSE due_date END " +
-                "WHERE customer_id = ?";
+        String updateBal = "UPDATE customer_tbl SET balance = ?, due_date = ? WHERE customer_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
@@ -197,13 +212,17 @@ public class SalesDao {
                     throw new SalesException("Invalid payment amount.");
                 }
 
+                double balance;
+                String oldDue;
+
                 try (PreparedStatement ps = conn.prepareStatement(getCust)) {
                     ps.setInt(1, customerId);
                     try (ResultSet rs = ps.executeQuery()) {
                         if (!rs.next()) {
                             throw new SalesException("Customer ID not found.");
                         }
-                        double balance = round2(rs.getDouble("balance"));
+                        balance = round2(rs.getDouble("balance"));
+                        oldDue = rs.getString("due_date");
                         if (balance <= 0) {
                             throw new SalesException("Customer has no utang balance.");
                         }
@@ -213,18 +232,38 @@ public class SalesDao {
                     }
                 }
 
+                double paid = round2(amount);
+                double remaining = round2(balance - paid);
+                String newDue = oldDue;
+
+                if (remaining <= 0) {
+                    remaining = 0;
+                    newDue = null;
+                } else if (isPartialQualified(balance, paid)) {
+                    LocalDate base = LocalDate.now();
+                    if (oldDue != null && !oldDue.isBlank()) {
+                        LocalDate old = LocalDate.parse(oldDue);
+                        if (old.isAfter(base)) base = old;
+                    }
+                    newDue = base.plusDays(EXTEND_DAYS).toString();
+                }
+
                 int paymentId;
                 try (PreparedStatement ps = conn.prepareStatement(insertPay)) {
                     ps.setInt(1, customerId);
-                    ps.setDouble(2, round2(amount));
+                    ps.setDouble(2, paid);
                     ps.setInt(3, receivedBy);
                     ps.executeUpdate();
                     paymentId = lastInsertId(conn);
                 }
 
-                try (PreparedStatement ps = conn.prepareStatement(deductBal)) {
-                    ps.setDouble(1, round2(amount));
-                    ps.setDouble(2, round2(amount));
+                try (PreparedStatement ps = conn.prepareStatement(updateBal)) {
+                    ps.setDouble(1, remaining);
+                    if (newDue == null) {
+                        ps.setNull(2, Types.VARCHAR);
+                    } else {
+                        ps.setString(2, newDue);
+                    }
                     ps.setInt(3, customerId);
                     ps.executeUpdate();
                 }
@@ -296,7 +335,7 @@ public class SalesDao {
         String sql = "SELECT * FROM utang_payments WHERE customer_id = ? ORDER BY payment_id DESC";
 
         try(Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)){
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
 
             pstmt.setInt(1, customerID);
             try(ResultSet rs = pstmt.executeQuery()){
@@ -307,7 +346,6 @@ public class SalesDao {
                             rs.getDouble("amount"),
                             rs.getString("payment_date"),
                             rs.getInt("received_by")
-
                     ));
                 }
             }

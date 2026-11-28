@@ -7,6 +7,7 @@ import com.scc.model.SalesItem;
 import com.scc.model.User;
 import com.scc.util.InputHelper;
 
+import java.time.LocalDate;
 import java.util.*;
 
 import static com.scc.util.InputHelper.readString;
@@ -29,6 +30,13 @@ public class CashierService {
 
     private double round2(double v) {
         return Math.round(v * 100.0) / 100.0;
+    }
+
+    private boolean isOverdue(Customer c) {
+        if (c.balance() <= 0) return false;
+        String due = c.due_date();
+        if (due == null || due.isBlank()) return false;
+        return LocalDate.parse(due).isBefore(LocalDate.now());
     }
 
     private Product findProduct(List<Product> list, int id) {
@@ -163,6 +171,10 @@ public class CashierService {
                 System.out.println("\n -> Customer is " + customer.status() + ". Dili pwede mag-utang.");
                 return false;
             }
+            if (isOverdue(customer)) {
+                System.out.println("\n -> Customer is OVERDUE (due " + customer.due_date() + "). Pay the balance first before utang.");
+                return false;
+            }
             double available = customer.credit_limit() - customer.balance();
             System.out.println();
             System.out.printf("Customer         : %s%n", customer.full_name());
@@ -267,6 +279,9 @@ public class CashierService {
         System.out.printf("Customer        : %s%n", customer.full_name());
         System.out.printf("Current balance : ₱ %.2f%n", balance);
         System.out.printf("Due date        : %s%n", due);
+        if (isOverdue(customer)) {
+            System.out.println("Status          : OVERDUE");
+        }
 
         double amount;
         while (true) {
@@ -287,6 +302,10 @@ public class CashierService {
         }
         amount = round2(amount);
 
+        if (SalesDao.isPartialQualified(balance, amount)) {
+            System.out.printf("%n -> Paid 60%% or more: due date +%d days.%n", SalesDao.EXTEND_DAYS);
+        }
+
         System.out.println();
         if (!InputHelper.readYesNo(sc, "Confirm payment of ₱ " + String.format("%.2f", amount) + "?")) {
             System.out.println("\n -> Payment cancelled.");
@@ -299,19 +318,20 @@ public class CashierService {
             return;
         }
 
-        logDao.logs(cashier.user_id(), "UTANG PAYMENT", "utang_payments", paymentId,
-                String.format("Payment %.2f from customer %d", amount, customer.customer_id()));
-
         Customer updated = findCustomer(customer.customer_id());
         String newDue = (updated.due_date() == null || updated.due_date().isBlank()) ? "-" : updated.due_date();
 
+        logDao.logs(cashier.user_id(), "UTANG PAYMENT", "utang_payments", paymentId,
+                String.format("Payment %.2f from customer %d | New balance: %.2f | Due: %s",
+                        amount, customer.customer_id(), updated.balance(), newDue));
+
         System.out.println("\n======================= PAYMENT RECEIPT =======================");
-        System.out.printf("Payment #       : %d%n", paymentId);
-        System.out.printf("Customer        : %s%n", updated.full_name());
-        System.out.printf("Previous balance: ₱ %.2f%n", balance);
-        System.out.printf("Amount paid     : ₱ %.2f%n", amount);
-        System.out.printf("New balance     : ₱ %.2f%n", updated.balance());
-        System.out.printf("Due date        : %s%n", newDue);
+        System.out.printf("Payment #         : %d%n", paymentId);
+        System.out.printf("Customer          : %s%n", updated.full_name());
+        System.out.printf("Previous balance  : ₱ %.2f%n", balance);
+        System.out.printf("Amount paid       : ₱ %.2f%n", amount);
+        System.out.printf("New balance       : ₱ %.2f%n", updated.balance());
+        System.out.printf("Due date          : %s%n", newDue);
         System.out.println("===============================================================");
     }
 

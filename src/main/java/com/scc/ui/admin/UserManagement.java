@@ -28,7 +28,7 @@ public class UserManagement {
             System.out.println("         MANAGE USERS");
             System.out.println("===============================");
             System.out.println("[1] Add User\n[2] View All Users\n[3] Approved User\n[4] Change Role" +
-                    "\n[5] Change Status (Approved/ Inactive)\n[6] Delete User\n[0] Back");
+                    "\n[5] Change Status (Approved/ Deactivate)\n[6] Delete User\n[0] Back");
             String choice = InputHelper.readString(sc, "Enter Choice: ");
 
             switch (choice) {
